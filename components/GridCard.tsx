@@ -42,9 +42,6 @@ export function GridCard({
         <span className="text-xs sm:text-sm font-medium text-white tracking-tight">
           {label}
         </span>
-        <span className="text-[10px] sm:text-xs font-mono text-neutral-500 tracking-wide">
-          {size}×{size}
-        </span>
       </div>
     </article>
   );
