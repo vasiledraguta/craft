@@ -18,7 +18,7 @@ const IDLE_OPACITY = 0.25;
 const IDLE_SCALE = 0.7;
 
 const SMOOTHING = 0.12;
-const ANIMATION_SPEED = 0.6;
+const ANIMATION_SPEED = 1;
 
 export function DotGrid({
   size,
