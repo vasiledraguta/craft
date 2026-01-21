@@ -1,8 +1,6 @@
 "use client";
 
-import { useState } from "react";
-import { GridCard } from "@/components/grid/GridCard";
-import { PlayModeToggle } from "@/components/grid/PlayModeToggle";
+import { Carousel } from "@/components/grid/Carousel";
 import type { PatternName } from "@/lib/patterns";
 import { Links } from "@/components/Links";
 
@@ -11,8 +9,6 @@ type GridShowcase = {
   pattern: PatternName;
   label: string;
 };
-
-type PlayMode = "hover" | "all";
 
 const showcases: GridShowcase[] = [
   // 3x3 grids
@@ -45,8 +41,6 @@ const showcases: GridShowcase[] = [
 ];
 
 export default function GridPage() {
-  const [playMode, setPlayMode] = useState<PlayMode>("hover");
-
   return (
     <div className="min-h-screen bg-[--color-background]">
       <header className="flex flex-col items-center px-6 pt-8 pb-12 sm:pb-16">
@@ -58,22 +52,10 @@ export default function GridPage() {
         </p>
 
         <Links align="left" className="mb-4" />
-
-        <div>
-          <PlayModeToggle value={playMode} onChange={setPlayMode} />
-        </div>
       </header>
 
-      <main className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 max-w-[1400px] mx-auto px-4 sm:px-8 pb-12 sm:pb-20">
-        {showcases.map((item) => (
-          <GridCard
-            key={`${item.size}-${item.pattern}`}
-            size={item.size}
-            pattern={item.pattern}
-            label={item.label}
-            playAll={playMode === "all"}
-          />
-        ))}
+      <main className="max-w-full mx-auto pb-12 sm:pb-20">
+        <Carousel showcases={showcases} />
       </main>
     </div>
   );
