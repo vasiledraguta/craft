@@ -25,7 +25,7 @@ export function DotGrid({
   pattern,
   dotSize = 8,
   gap = 6,
-  baseColor = "currentColor",
+  baseColor = "var(--color-dot)",
   isHovered = false,
 }: DotGridProps) {
   const prefersReducedMotion = useReducedMotion() ?? false;

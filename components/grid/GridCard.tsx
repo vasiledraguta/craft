@@ -24,7 +24,7 @@ export function GridCard({
 
   return (
     <article
-      className="bg-neutral-900/50 border border-neutral-800/60 rounded-xl sm:rounded-2xl p-4 sm:p-6 pb-4 sm:pb-5 flex flex-col items-center justify-between aspect-square transition-colors duration-200 ease hover:border-neutral-600 hover:bg-neutral-800/50"
+      className="bg-(--color-card-bg) border border-(--color-card-border) rounded-xl sm:rounded-2xl p-4 sm:p-6 pb-4 sm:pb-5 flex flex-col items-center justify-between aspect-square transition-colors duration-200 ease hover:border-(--color-card-hover-border) hover:bg-(--color-card-hover-bg)"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -34,12 +34,12 @@ export function GridCard({
           pattern={pattern}
           dotSize={dotSize}
           gap={gap}
-          baseColor="white"
+          baseColor="var(--color-dot)"
           isHovered={playAll || isHovered}
         />
       </div>
       <div className="flex flex-col items-center gap-0.5 sm:gap-1 text-center mt-2 sm:mt-3">
-        <span className="text-xs sm:text-sm font-medium text-white tracking-tight">
+        <span className="text-xs sm:text-sm font-medium text-(--color-foreground) tracking-tight">
           {label}
         </span>
       </div>

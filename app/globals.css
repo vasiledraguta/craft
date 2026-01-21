@@ -1,10 +1,52 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-background: #000000;
-  --color-foreground: #ffffff;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+:root {
+  /* Light mode variables */
+  --color-background: #ffffff;
+  --color-foreground: #0a0a0a;
+  --color-surface: #f5f5f5;
+  --color-border: #e5e5e5;
+  --color-border-hover: #d4d4d4;
+  --color-text-secondary: #737373;
+  --color-text-tertiary: #525252;
+  --color-interactive: #525252;
+  --color-interactive-hover: #0a0a0a;
+  --color-card-bg: rgba(245, 245, 245, 0.5);
+  --color-card-border: rgba(229, 229, 229, 0.6);
+  --color-card-hover-bg: rgba(229, 229, 229, 0.5);
+  --color-card-hover-border: #d4d4d4;
+  --color-dot: #0a0a0a;
+  --color-toggle-active-bg: #0a0a0a;
+  --color-toggle-inactive-bg: #d4d4d4;
+  --color-toggle-knob: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Dark mode overrides */
+    --color-background: #000000;
+    --color-foreground: #ffffff;
+    --color-surface: #171717;
+    --color-border: #404040;
+    --color-border-hover: #525252;
+    --color-text-secondary: #a3a3a3;
+    --color-text-tertiary: #737373;
+    --color-interactive: #737373;
+    --color-interactive-hover: #d4d4d4;
+    --color-card-bg: rgba(23, 23, 23, 0.5);
+    --color-card-border: rgba(38, 38, 38, 0.6);
+    --color-card-hover-bg: rgba(38, 38, 38, 0.5);
+    --color-card-hover-border: #525252;
+    --color-dot: #ffffff;
+    --color-toggle-active-bg: #ffffff;
+    --color-toggle-inactive-bg: #404040;
+    --color-toggle-knob: #000000;
+  }
 }
 
 *,
@@ -15,8 +57,8 @@
 
 html,
 body {
-  background: #000;
-  color: #fff;
+  background: var(--color-background);
+  color: var(--color-foreground);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
   min-height: 100vh;
 }
