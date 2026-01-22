@@ -67,19 +67,19 @@ export const OnboardFlow = () => {
 	const letters = [...helloMessages[currentIndex]];
 
 	return (
-		<div className="flex flex-col items-center justify-center min-h-[120px]">
+		<div className="flex flex-col items-center justify-center min-h-[120px] px-4">
 			<AnimatePresence mode="wait">
 				{!showForm ? (
 					<motion.div
 						key="hello"
-						className="relative flex text-9xl cursor-pointer select-none overflow-visible"
+						className="relative flex text-6xl sm:text-8xl lg:text-9xl cursor-pointer select-none overflow-visible"
 						onMouseEnter={() => setIsHovered(true)}
 						onMouseLeave={() => setIsHovered(false)}
 						onClick={handleClick}
 						whileHover={{ scale: 1.05 }}
 						transition={{ duration: 0.2, ...cubicBezierEaseInOut }}
 						exit={{
-							y: -80,
+							y: -60,
 							opacity: 0,
 							transition: { duration: 0.4, ...cubicBezierEaseInOut },
 						}}
@@ -100,7 +100,7 @@ export const OnboardFlow = () => {
 									<motion.span
 										key={i}
 										className="inline-block"
-										initial={{ opacity: 0, y: 80, scale: 0.5 }}
+										initial={{ opacity: 0, y: 50, scale: 0.5 }}
 										animate={{
 											opacity: 1,
 											y: 0,
@@ -109,7 +109,7 @@ export const OnboardFlow = () => {
 										}}
 										exit={{
 											opacity: 0,
-											y: -80,
+											y: -50,
 											scale: 0.5,
 											transition: {
 												duration: 0.4,
@@ -126,7 +126,7 @@ export const OnboardFlow = () => {
 						<AnimatePresence>
 							{isHovered && (
 								<motion.div
-									className="absolute -bottom-24 left-1/2 -translate-x-1/2 text-sm text-(--color-text-secondary) whitespace-nowrap"
+									className="absolute -bottom-16 sm:-bottom-24 left-1/2 -translate-x-1/2 text-xs sm:text-sm text-(--color-text-secondary) whitespace-nowrap"
 									initial={{ opacity: 0, y: 10 }}
 									animate={{
 										opacity: 1,

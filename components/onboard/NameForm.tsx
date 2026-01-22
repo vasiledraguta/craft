@@ -62,7 +62,7 @@ export const NameForm = ({ onComplete }: NameFormProps) => {
 				>
 					<form
 						onSubmit={handleSubmit}
-						className="relative flex items-center min-w-[500px]
+						className="relative flex items-center w-full sm:min-w-[500px]
 						rounded-2xl
 						bg-linear-to-b from-[#e8e8e8] to-[#f5f5f5]
 						dark:from-[#151515] dark:to-[#1a1a1a]
@@ -77,13 +77,13 @@ export const NameForm = ({ onComplete }: NameFormProps) => {
 							placeholder="How do I call you?"
 							aria-label="Name"
 							required
-							className="flex-1 px-8 py-6 text-2xl bg-transparent
+							className="flex-1 px-4 sm:px-8 py-4 sm:py-6 text-lg sm:text-2xl bg-transparent
 							text-(--color-foreground) placeholder-(--color-text-secondary)
 							focus:outline-none selection:text-(--color-foreground) selection:bg-(--color-border)"
 						/>
 						<button
 							type="submit"
-							className="mr-3 px-8 py-4 text-lg rounded-xl font-medium cursor-pointer
+							className="mr-2 sm:mr-3 px-4 sm:px-8 py-3 sm:py-4 text-base sm:text-lg rounded-xl font-medium cursor-pointer
 							bg-linear-to-b from-[#fafafa] to-[#e8e8e8]
 							dark:from-[#3a3a3a] dark:to-[#2a2a2a]
 							border border-[#d0d0d0] dark:border-[#404040]
@@ -98,7 +98,7 @@ export const NameForm = ({ onComplete }: NameFormProps) => {
 							dark:active:from-[#2a2a2a] dark:active:to-[#353535]
 							active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.1),inset_0_1px_2px_rgba(0,0,0,0.08)]
 							dark:active:shadow-[inset_0_2px_4px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(0,0,0,0.3)]
-							transition-all duration-150"
+							transition-all duration-150 whitespace-nowrap"
 						>
 							Continue
 						</button>
@@ -122,7 +122,7 @@ export const NameForm = ({ onComplete }: NameFormProps) => {
 					shadow-[0_4px_16px_rgba(0,0,0,0.1),0_1px_3px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.8),inset_0_-1px_0_rgba(0,0,0,0.05)]
 					dark:shadow-[0_4px_16px_rgba(0,0,0,0.4),0_1px_3px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.05),inset_0_-1px_0_rgba(0,0,0,0.3)]"
 				>
-					<div className="flex items-center justify-center min-w-[500px] h-[72px] rounded-2xl
+					<div className="flex items-center justify-center w-full sm:min-w-[500px] h-[60px] sm:h-[72px] rounded-2xl px-4
 						bg-linear-to-b from-[#e8e8e8] to-[#f5f5f5]
 						dark:from-[#151515] dark:to-[#1a1a1a]
 						border border-[#d0d0d0] dark:border-[#252525]
@@ -133,7 +133,7 @@ export const NameForm = ({ onComplete }: NameFormProps) => {
 							initial={{ opacity: 0, y: 20, scale: 0.9, filter: "blur(8px)" }}
 							animate={isFlipped ? { opacity: 1, y: 0, scale: 1, filter: "blur(0px)" } : { opacity: 0, y: 20, scale: 0.9, filter: "blur(8px)" }}
 							transition={{ delay: 0.6, duration: 0.5, ...easeOut }}
-							className="text-2xl text-(--color-foreground)"
+							className="text-lg sm:text-2xl text-(--color-foreground) text-center"
 						>
 							Nice to meet you, {name}!
 						</motion.div>
