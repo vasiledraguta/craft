@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Open_Sans, Pacifico
+import { Open_Sans, Dancing_Script
 } from "next/font/google";
 import "./globals.css";
 
@@ -8,10 +8,10 @@ const openSans = Open_Sans({
   subsets: ["latin"],
 });
 
-const pacifico = Pacifico({
-  weight: ["400"],
+const dancingScript = Dancing_Script({
+  weight: ["400", "500", "600", "700"],
   subsets: ["latin"],
-  variable: "--font-pacifico",
+  variable: "--font-dancing-script",
 });
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${openSans.className} ${pacifico.variable} antialiased`}
+        className={`${openSans.className} ${dancingScript.variable} antialiased`}
       >
         {children}
       </body>

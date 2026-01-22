@@ -6,7 +6,7 @@ import { SubscribeForm } from "./SubscribeForm";
 
 const helloMessages = [
 	"hello",
-	"hola",
+	"hóla",
 	"salut",
 	"hallo",
 	"bonjour",
@@ -19,7 +19,6 @@ const helloMessages = [
 ];
 
 const easeOut = { ease: "easeOut" } as const;
-const easeIn = { ease: "easeIn" } as const;
 
 export const OnboardFlow = () => {
 	const [currentIndex, setCurrentIndex] = useState(0);
@@ -38,7 +37,7 @@ export const OnboardFlow = () => {
 		if (!isHovered && !showForm) {
 			intervalRef.current = setInterval(
 				() => setCurrentIndex((i) => (i + 1) % helloMessages.length),
-				3000,
+				5000,
 			);
 		}
 		return stopAutoRotate;
@@ -50,6 +49,12 @@ export const OnboardFlow = () => {
 			setShowForm(true);
 		}
 	};
+
+	const handleSubscribeComplete = useCallback(() => {
+		setTimeout(() => {
+			setShowForm(false);
+		}, 2000);
+	}, []);
 
 	const letters = [...helloMessages[currentIndex]];
 
@@ -68,7 +73,7 @@ export const OnboardFlow = () => {
 						exit={{
 							y: -80,
 							opacity: 0,
-							transition: { duration: 0.4, ...easeIn },
+							transition: { duration: 0.4, ...easeOut },
 						}}
 					>
 						<AnimatePresence mode="wait">
@@ -77,10 +82,10 @@ export const OnboardFlow = () => {
 								className="flex overflow-visible"
 								initial={{ opacity: 0 }}
 								animate={{ opacity: 1 }}
-								style={{ fontFamily: "var(--font-pacifico)" }}
+								style={{ fontFamily: "var(--font-dancing-script)", fontWeight: 400 }}
 								exit={{
 									opacity: 0.5,
-									transition: { duration: 0.3, delay: letters.length * 0.1 },
+									transition: { duration: 0.4, delay: letters.length * 0.1 },
 								}}
 							>
 								{letters.map((letter, i) => (
@@ -92,16 +97,16 @@ export const OnboardFlow = () => {
 											opacity: 1,
 											y: 0,
 											scale: 1,
-											transition: { duration: 0.5, delay: i * 0.1, ...easeOut },
+											transition: { duration: 0.5, delay: 0.4 + i * 0.1, ...easeOut },
 										}}
 										exit={{
 											opacity: 0,
 											y: -80,
 											scale: 0.5,
 											transition: {
-												duration: 0.3,
+												duration: 0.4,
 												delay: (letters.length - 1 - i) * 0.1,
-												...easeIn,
+												...easeOut,
 											},
 										}}
 									>
@@ -123,16 +128,16 @@ export const OnboardFlow = () => {
 									exit={{
 										opacity: 0,
 										y: 10,
-										transition: { duration: 0.2, ...easeIn },
+										transition: { duration: 0.3, ...easeOut },
 									}}
 								>
-									Click to subscribe
+									Click to introduce yourself
 								</motion.div>
 							)}
 						</AnimatePresence>
 					</motion.div>
 				) : (
-					<SubscribeForm />
+					<SubscribeForm key="form" onComplete={handleSubscribeComplete} />
 				)}
 			</AnimatePresence>
 		</div>
