@@ -6,6 +6,7 @@ import "./globals.css";
 const openSans = Open_Sans({
   weight: ["400", "700"],
   subsets: ["latin"],
+  variable: "--font-open-sans",
 });
 
 const dancingScript = Dancing_Script({
@@ -27,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${openSans.className} ${dancingScript.variable} antialiased`}
+        className={`${openSans.variable} ${dancingScript.variable} antialiased`}
       >
         {children}
       </body>
