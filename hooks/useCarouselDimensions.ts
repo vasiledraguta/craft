@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useSyncExternalStore } from 'react';
+import { useSyncExternalStore } from "react";
 
 export interface CarouselDimensions {
 	cardWidth: number;
@@ -24,8 +24,8 @@ function getCSSVariable(name: string, fallback: number): number {
 }
 
 function getDimensions(): CarouselDimensions {
-	const cardWidth = getCSSVariable('--carousel-card-width', DEFAULT_CARD_WIDTH);
-	const gap = getCSSVariable('--carousel-gap', DEFAULT_GAP);
+	const cardWidth = getCSSVariable("--carousel-card-width", DEFAULT_CARD_WIDTH);
+	const gap = getCSSVariable("--carousel-gap", DEFAULT_GAP);
 	return {
 		cardWidth,
 		gap,
@@ -57,9 +57,9 @@ function subscribe(callback: () => void): () => void {
 		timeoutId = setTimeout(callback, 150);
 	};
 
-	window.addEventListener('resize', handleResize);
+	window.addEventListener("resize", handleResize);
 	return () => {
-		window.removeEventListener('resize', handleResize);
+		window.removeEventListener("resize", handleResize);
 		clearTimeout(timeoutId);
 	};
 }

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { memo, useEffect, useMemo, useRef } from 'react';
-import { useReducedMotion, type MotionValue } from 'motion/react';
-import { patterns, type PatternName } from '@/lib/patterns';
+import { memo, useEffect, useMemo, useRef } from "react";
+import { useReducedMotion, type MotionValue } from "motion/react";
+import { patterns, type PatternName } from "@/lib/patterns";
 
 interface DotGridProps {
 	size: 3 | 5 | 9;
@@ -24,7 +24,7 @@ export const DotGrid = memo(function DotGrid({
 	pattern,
 	dotSize = 8,
 	gap = 6,
-	baseColor = 'var(--color-dot)',
+	baseColor = "var(--color-dot)",
 	isVisible,
 }: DotGridProps) {
 	const prefersReducedMotion = useReducedMotion() ?? false;
@@ -33,13 +33,10 @@ export const DotGrid = memo(function DotGrid({
 	const valuesRef = useRef<Array<{ opacity: number; scale: number }>>([]);
 	const gridSize = size * dotSize + (size - 1) * gap;
 
-	const dotIndices = useMemo(
-		() => Array.from({ length: size * size }, (_, i) => i),
-		[size],
-	);
+	const dotIndices = useMemo(() => Array.from({ length: size * size }, (_, i) => i), [size]);
 	const coordinates = useMemo(
 		() => dotIndices.map((index) => [Math.floor(index / size), index % size]),
-		[dotIndices, size],
+		[dotIndices, size]
 	);
 
 	useEffect(() => {
@@ -70,7 +67,7 @@ export const DotGrid = memo(function DotGrid({
 		let frameId: number;
 		const animate = (time: number) => {
 			const visible = isVisible?.get() ?? true;
-			
+
 			if (!visible) {
 				setIdle();
 				frameId = requestAnimationFrame(animate);
@@ -97,9 +94,9 @@ export const DotGrid = memo(function DotGrid({
 
 	return (
 		<div
-			className='dot-grid'
+			className="dot-grid"
 			style={{
-				display: 'grid',
+				display: "grid",
 				gridTemplateColumns: `repeat(${size}, ${dotSize}px)`,
 				gap: `${gap}px`,
 				width: gridSize,
@@ -112,15 +109,15 @@ export const DotGrid = memo(function DotGrid({
 					ref={(el) => {
 						dotRefs.current[index] = el;
 					}}
-					className='dot'
+					className="dot"
 					style={{
 						width: dotSize,
 						height: dotSize,
-						borderRadius: '50%',
+						borderRadius: "50%",
 						backgroundColor: baseColor,
 						opacity: IDLE_OPACITY,
 						transform: `scale(${IDLE_SCALE})`,
-						willChange: 'transform, opacity',
+						willChange: "transform, opacity",
 					}}
 				/>
 			))}

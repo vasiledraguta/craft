@@ -1,16 +1,16 @@
 interface SourceProps {
-  href: string;
+	href: string;
 }
 
 export default function Source({ href }: SourceProps) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="text-sm text-muted-foreground my-auto hover:underline"
-    >
-      source
-    </a>
-  );
+	return (
+		<a
+			href={href}
+			target="_blank"
+			rel="noopener noreferrer"
+			className="text-muted-foreground my-auto text-sm hover:underline"
+		>
+			source
+		</a>
+	);
 }

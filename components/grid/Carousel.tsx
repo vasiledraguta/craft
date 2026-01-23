@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import {
 	motion,
 	useMotionValue,
@@ -8,10 +8,10 @@ import {
 	animate,
 	type PanInfo,
 	type AnimationPlaybackControls,
-} from 'motion/react';
-import { CarouselCard } from './CarouselCard';
-import type { PatternName } from '@/lib/patterns';
-import { useCarouselDimensions } from '@/hooks/useCarouselDimensions';
+} from "motion/react";
+import { CarouselCard } from "./CarouselCard";
+import type { PatternName } from "@/lib/patterns";
+import { useCarouselDimensions } from "@/hooks/useCarouselDimensions";
 
 export type GridShowcase = {
 	size: 3 | 5 | 9;
@@ -36,11 +36,7 @@ export function Carousel({ showcases }: CarouselProps) {
 	const animationRef = useRef<AnimationPlaybackControls | null>(null);
 
 	const virtualItems = useMemo(() => {
-		const createItem = (
-			item: GridShowcase,
-			index: number,
-			isClone: boolean,
-		) => ({
+		const createItem = (item: GridShowcase, index: number, isClone: boolean) => ({
 			...item,
 			isClone,
 			originalIndex: index,
@@ -50,9 +46,7 @@ export function Carousel({ showcases }: CarouselProps) {
 				.slice(-CLONE_COUNT)
 				.map((item, i) => createItem(item, totalItems - CLONE_COUNT + i, true)),
 			...showcases.map((item, i) => createItem(item, i, false)),
-			...showcases
-				.slice(0, CLONE_COUNT)
-				.map((item, i) => createItem(item, i, true)),
+			...showcases.slice(0, CLONE_COUNT).map((item, i) => createItem(item, i, true)),
 		];
 	}, [showcases, totalItems]);
 
@@ -65,30 +59,27 @@ export function Carousel({ showcases }: CarouselProps) {
 				scrollX.set(target);
 			} else {
 				animationRef.current = animate(scrollX, target, {
-					type: 'spring',
+					type: "spring",
 					stiffness: 300,
 					damping: 30,
 				});
 			}
 		},
-		[scrollX, itemSize],
+		[scrollX, itemSize]
 	);
 
 	const visualCenter = useTransform(scrollX, (x) => -x / itemSize);
 
-	const handleDragEnd = (
-		_: MouseEvent | TouchEvent | PointerEvent,
-		info: PanInfo,
-	) => {
+	const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
 		setIsDragging(false);
 		const velocity = info.velocity.x;
 		const offset = info.offset.x;
-		
+
 		let direction = 0;
-		
+
 		const dragThreshold = itemSize * 0.25;
 		const velocityThreshold = 300;
-		
+
 		if (Math.abs(offset) > dragThreshold || Math.abs(velocity) > velocityThreshold) {
 			if (Math.abs(velocity) > velocityThreshold) {
 				direction = velocity > 0 ? -1 : 1;
@@ -96,7 +87,7 @@ export function Carousel({ showcases }: CarouselProps) {
 				direction = offset > 0 ? -1 : 1;
 			}
 		}
-		
+
 		const target = Math.max(0, Math.min(virtualItems.length - 1, activeIndex + direction));
 		setActiveIndex(target);
 		snapToCard(target);
@@ -104,17 +95,17 @@ export function Carousel({ showcases }: CarouselProps) {
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
-			if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+			if (e.key === "ArrowLeft" || e.key === "ArrowRight") {
 				e.preventDefault();
-				const direction = e.key === 'ArrowRight' ? 1 : -1;
+				const direction = e.key === "ArrowRight" ? 1 : -1;
 				const next = activeIndex + direction;
 				const clamped = Math.max(0, Math.min(virtualItems.length - 1, next));
 				setActiveIndex(clamped);
 				snapToCard(clamped);
 			}
 		};
-		window.addEventListener('keydown', onKey);
-		return () => window.removeEventListener('keydown', onKey);
+		window.addEventListener("keydown", onKey);
+		return () => window.removeEventListener("keydown", onKey);
 	}, [activeIndex, virtualItems.length, snapToCard]);
 
 	useEffect(() => {
@@ -125,9 +116,7 @@ export function Carousel({ showcases }: CarouselProps) {
 
 		if (isStartClone || isEndClone) {
 			const timer = setTimeout(() => {
-				const realIndex = isStartClone
-					? activeIndex + totalItems
-					: activeIndex - totalItems;
+				const realIndex = isStartClone ? activeIndex + totalItems : activeIndex - totalItems;
 
 				setActiveIndex(realIndex);
 				snapToCard(realIndex, true);
@@ -148,20 +137,20 @@ export function Carousel({ showcases }: CarouselProps) {
 
 	return (
 		<div
-			className='relative w-full overflow-hidden py-12'
-			role='region'
-			aria-label='Pattern carousel'
+			className="relative w-full overflow-hidden py-12"
+			role="region"
+			aria-label="Pattern carousel"
 			tabIndex={0}
 		>
 			<motion.div
-				className='flex items-center cursor-grab active:cursor-grabbing'
+				className="flex cursor-grab items-center active:cursor-grabbing"
 				style={{
 					x: scrollX,
-					gap: 'var(--carousel-gap)',
-					paddingLeft: 'calc(50vw - var(--carousel-card-width) / 2)',
-					paddingRight: 'calc(50vw - var(--carousel-card-width) / 2)',
+					gap: "var(--carousel-gap)",
+					paddingLeft: "calc(50vw - var(--carousel-card-width) / 2)",
+					paddingRight: "calc(50vw - var(--carousel-card-width) / 2)",
 				}}
-				drag='x'
+				drag="x"
 				dragConstraints={{
 					left: -(virtualItems.length - 1) * itemSize,
 					right: 0,

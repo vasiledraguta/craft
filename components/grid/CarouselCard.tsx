@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { memo } from 'react';
-import { motion, useTransform, type MotionValue } from 'motion/react';
-import { DotGrid } from './DotGrid';
-import type { GridShowcase } from './Carousel';
-import { useCarouselDimensions } from '@/hooks/useCarouselDimensions';
+import { memo } from "react";
+import { motion, useTransform, type MotionValue } from "motion/react";
+import { DotGrid } from "./DotGrid";
+import type { GridShowcase } from "./Carousel";
+import { useCarouselDimensions } from "@/hooks/useCarouselDimensions";
 
 interface CarouselCardProps {
 	showcase: GridShowcase;
@@ -55,38 +55,38 @@ export const CarouselCard = memo(function CarouselCard({
 
 	const baseDotSize = showcase.size === 9 ? 18 : showcase.size === 5 ? 24 : 30;
 	const baseGap = showcase.size === 9 ? 10 : showcase.size === 5 ? 12 : 16;
-	
+
 	const dotSize = Math.round(baseDotSize * scaleFactor);
 	const gap = Math.round(baseGap * scaleFactor);
 
 	return (
 		<motion.div
-			className='shrink-0 will-change-transform'
+			className="shrink-0 will-change-transform"
 			style={{
-				width: 'var(--carousel-card-width)',
-				height: 'var(--carousel-card-width)',
+				width: "var(--carousel-card-width)",
+				height: "var(--carousel-card-width)",
 				zIndex,
 				scale,
 				opacity,
 			}}
 			onClick={onClick}
-			role='group'
-			aria-roledescription='slide'
+			role="group"
+			aria-roledescription="slide"
 			aria-label={showcase.label}
 		>
-			<article className='bg-(--color-card-bg) border border-(--color-card-border) rounded-xl sm:rounded-2xl p-4 sm:p-6 pb-4 sm:pb-5 flex flex-col items-center justify-between aspect-square shadow-sm transition-all duration-200 ease hover:border-(--color-card-hover-border) hover:bg-(--color-card-hover-bg) hover:shadow-md h-full'>
-				<div className='flex-1 flex items-center justify-center'>
+			<article className="ease flex aspect-square h-full flex-col items-center justify-between rounded-xl border border-(--color-card-border) bg-(--color-card-bg) p-4 pb-4 shadow-sm transition-all duration-200 hover:border-(--color-card-hover-border) hover:bg-(--color-card-hover-bg) hover:shadow-md sm:rounded-2xl sm:p-6 sm:pb-5">
+				<div className="flex flex-1 items-center justify-center">
 					<DotGrid
 						size={showcase.size}
 						pattern={showcase.pattern}
 						dotSize={dotSize}
 						gap={gap}
-						baseColor='var(--color-dot)'
+						baseColor="var(--color-dot)"
 						isVisible={isVisible}
 					/>
 				</div>
-				<div className='flex flex-col items-center gap-0.5 sm:gap-1 text-center mt-2 sm:mt-3'>
-					<span className='text-xs sm:text-sm font-medium text-(--color-foreground) tracking-tight'>
+				<div className="mt-2 flex flex-col items-center gap-0.5 text-center sm:mt-3 sm:gap-1">
+					<span className="text-xs font-medium tracking-tight text-(--color-foreground) sm:text-sm">
 						{showcase.label}
 					</span>
 				</div>
