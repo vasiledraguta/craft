@@ -27,7 +27,7 @@ export const OnboardFlow = () => {
 	const [fontFamily] = useState(() => {
 		if (typeof navigator !== "undefined") {
 			const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-			return isSafari ? "var(--font-open-sans)" : "var(--font-dancing-script)";
+			return isSafari ? "Georgia, Times, serif" : "var(--font-dancing-script)";
 		}
 		return "var(--font-dancing-script)";
 	});

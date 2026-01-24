@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
-import { Open_Sans, Dancing_Script } from "next/font/google";
+import { Dancing_Script } from "next/font/google";
 import "./globals.css";
-
-const openSans = Open_Sans({
-	weight: ["400", "700"],
-	subsets: ["latin"],
-	variable: "--font-open-sans",
-});
 
 const dancingScript = Dancing_Script({
 	weight: ["400", "500", "600", "700"],
@@ -26,9 +20,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body className={`${openSans.variable} ${dancingScript.variable} antialiased`}>
-				{children}
-			</body>
+			<body className={`${dancingScript.variable} antialiased`}>{children}</body>
 		</html>
 	);
 }
