@@ -37,7 +37,7 @@ function GradientItem({ gradient, index, scrollIndex }: GradientItemProps) {
 	return (
 		<motion.div className="relative origin-left" style={{ scale, x }}>
 			<motion.span
-				className="block text-xl font-semibold tracking-tight text-(--color-foreground) sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl"
+				className="block font-serif text-xl leading-[1.02] font-medium tracking-[-0.018em] text-(--color-foreground) sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl"
 				style={{ opacity }}
 			>
 				{gradient.name}

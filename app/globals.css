@@ -2,6 +2,7 @@
 
 @theme inline {
 	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+	--font-serif: var(--font-newsreader), "Iowan Old Style", Charter, Georgia, serif;
 	--font-mono: var(--font-geist-mono);
 }
 
@@ -25,19 +26,19 @@
 @media (prefers-color-scheme: dark) {
 	:root {
 		/* Dark mode overrides - ultra soft palette */
-		--color-background: oklch(5% 0 0);
-		--color-foreground: oklch(99% 0 0);
-		--color-surface: oklch(20% 0 0);
-		--color-border: oklch(100% 0 0 / 0.125);
-		--color-border-hover: oklch(100% 0 0 / 0.2);
-		--color-text-secondary: oklch(66% 0 0);
-		--color-text-tertiary: oklch(60% 0 0);
-		--color-interactive: oklch(66% 0 0);
-		--color-interactive-hover: oklch(99% 0 0);
-		--color-dot: oklch(99% 0 0);
-		--color-toggle-active-bg: oklch(99% 0 0);
-		--color-toggle-inactive-bg: oklch(33% 0 0);
-		--color-toggle-knob: oklch(5% 0 0);
+		--color-background: #121212;
+		--color-foreground: #f5f5f5;
+		--color-surface: #212121;
+		--color-border: rgba(255, 255, 255, 0.07);
+		--color-border-hover: rgba(255, 255, 255, 0.11);
+		--color-text-secondary: #a3a3a3;
+		--color-text-tertiary: #808080;
+		--color-interactive: #a3a3a3;
+		--color-interactive-hover: #f5f5f5;
+		--color-dot: #f5f5f5;
+		--color-toggle-active-bg: #f5f5f5;
+		--color-toggle-inactive-bg: #2b2b2b;
+		--color-toggle-knob: #121212;
 	}
 }
 

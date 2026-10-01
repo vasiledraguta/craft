@@ -32,7 +32,7 @@ Explicit instructions in the current request override these defaults. Permission
 
 - Use the `--color-*` tokens from `app/globals.css` with Tailwind 4 syntax, e.g. `text-(--color-foreground)`. A new token needs both a light and a dark value.
 - Reuse existing spacing values and keep rem and em values simple, on a quarter-rem grid. Give equivalent controls the same dimensions.
-- State changes animate with `motion` from the current state and never jump. New animations reuse the timing of existing ones, such as the 0.12s to 0.15s `easeOut` transitions in `components/scrolling-palette` and the 200ms hover transitions.
+- State changes animate with `motion` from the current state and never jump. New animations reuse the timing of existing ones, such as the `[0.22, 1, 0.36, 1]` ease in `components/scrolling-palette` and the 200ms hover transitions.
 - Every experiment works on mobile and in both light and dark mode.
 
 ## One task, one PR, one worktree

@@ -34,7 +34,9 @@ function PatternCell({ showcase }: { showcase: GridShowcase }) {
 				{...dimensions[showcase.size]}
 				isVisible={isVisible}
 			/>
-			<span className="text-sm text-(--color-text-secondary)">{showcase.label}</span>
+			<span className="text-sm tracking-[0.02em] text-(--color-text-secondary)">
+				{showcase.label}
+			</span>
 		</li>
 	);
 }
