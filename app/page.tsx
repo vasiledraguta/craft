@@ -41,7 +41,7 @@ export default function Home() {
 							>
 								<Link
 									href={project.href}
-									className="group -mx-4 flex items-center rounded-lg px-4 py-3 transition-colors duration-200 hover:bg-(--color-surface)"
+									className="group -mx-4 flex w-fit items-center rounded-lg px-4 py-3 transition-colors duration-200 hover:bg-(--color-surface)"
 								>
 									<span className="font-medium text-(--color-foreground) transition-colors duration-200 group-hover:text-(--color-interactive-hover)">
 										{project.name}
