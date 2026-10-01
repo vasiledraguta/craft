@@ -44,6 +44,9 @@ export function ScrollingPalette() {
 					</div>
 
 					<div className="order-2 shrink-0 md:order-1">
+						<h1 className="mb-4 text-xs tracking-tight text-(--color-text-secondary) md:mb-6 md:text-sm">
+							Types of gradients
+						</h1>
 						<GradientList
 							gradients={gradients}
 							activeIndex={activeIndex}
