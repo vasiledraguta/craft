@@ -41,7 +41,7 @@ export function GradientDisplay({ gradient }: GradientDisplayProps) {
 				<AnimatePresence mode="popLayout">
 					<motion.p
 						key={gradient.id}
-						className="text-center text-xs text-neutral-500 md:text-sm"
+						className="text-center text-xs text-(--color-text-secondary) md:text-sm"
 						initial={{ opacity: 0, y: 8 }}
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -8 }}

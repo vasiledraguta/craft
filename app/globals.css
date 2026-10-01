@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme inline {
-	--font-sans: var(--font-geist-sans);
+	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 	--font-mono: var(--font-geist-mono);
 }
 
@@ -12,14 +12,10 @@
 	--color-surface: #f0f0f0;
 	--color-border: #e0e0e0;
 	--color-border-hover: #d0d0d0;
-	--color-text-secondary: #787878;
+	--color-text-secondary: #6b6b6b;
 	--color-text-tertiary: #686868;
 	--color-interactive: #686868;
 	--color-interactive-hover: #484848;
-	--color-card-bg: rgba(240, 240, 240, 0.6);
-	--color-card-border: rgba(224, 224, 224, 0.6);
-	--color-card-hover-bg: rgba(224, 224, 224, 0.5);
-	--color-card-hover-border: #d0d0d0;
 	--color-dot: #2c2c2c;
 	--color-toggle-active-bg: #2c2c2c;
 	--color-toggle-inactive-bg: #d0d0d0;
@@ -29,23 +25,19 @@
 @media (prefers-color-scheme: dark) {
 	:root {
 		/* Dark mode overrides - ultra soft palette */
-		--color-background: #121212;
-		--color-foreground: #d4d4d4;
-		--color-surface: #1e1e1e;
-		--color-border: #252525;
-		--color-border-hover: #303030;
-		--color-text-secondary: #787878;
-		--color-text-tertiary: #5c5c5c;
-		--color-interactive: #686868;
-		--color-interactive-hover: #989898;
-		--color-card-bg: rgba(30, 30, 30, 0.6);
-		--color-card-border: rgba(37, 37, 37, 0.6);
-		--color-card-hover-bg: rgba(37, 37, 37, 0.5);
-		--color-card-hover-border: #303030;
-		--color-dot: #d4d4d4;
-		--color-toggle-active-bg: #d4d4d4;
-		--color-toggle-inactive-bg: #252525;
-		--color-toggle-knob: #121212;
+		--color-background: oklch(5% 0 0);
+		--color-foreground: oklch(99% 0 0);
+		--color-surface: oklch(20% 0 0);
+		--color-border: oklch(100% 0 0 / 0.125);
+		--color-border-hover: oklch(100% 0 0 / 0.2);
+		--color-text-secondary: oklch(66% 0 0);
+		--color-text-tertiary: oklch(60% 0 0);
+		--color-interactive: oklch(66% 0 0);
+		--color-interactive-hover: oklch(99% 0 0);
+		--color-dot: oklch(99% 0 0);
+		--color-toggle-active-bg: oklch(99% 0 0);
+		--color-toggle-inactive-bg: oklch(33% 0 0);
+		--color-toggle-knob: oklch(5% 0 0);
 	}
 }
 
@@ -59,7 +51,8 @@ html,
 body {
 	background: var(--color-background);
 	color: var(--color-foreground);
-	font-family: Georgia, Times, "Times New Roman", serif;
+	font-family: var(--font-sans);
+	font-weight: 460;
 	min-height: 100vh;
 }
 
