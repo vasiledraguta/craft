@@ -29,10 +29,15 @@ function GradientItem({ gradient, index, scrollIndex }: GradientItemProps) {
 		return 0.3 + intensity * 0.7;
 	});
 
+	const x = useTransform(scrollIndex, (latest) => {
+		const distance = Math.abs(index - latest);
+		return Math.exp(-distance * distance * 3) * 12;
+	});
+
 	return (
-		<motion.div className="relative origin-left" style={{ scale }}>
+		<motion.div className="relative origin-left" style={{ scale, x }}>
 			<motion.span
-				className="block font-serif text-xl font-semibold tracking-tight text-neutral-900 sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl dark:text-white"
+				className="block font-serif text-xl leading-[1.02] font-medium tracking-[-0.018em] text-(--color-foreground) sm:text-2xl md:text-4xl lg:text-5xl xl:text-6xl"
 				style={{ opacity }}
 			>
 				{gradient.name}

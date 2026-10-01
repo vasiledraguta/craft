@@ -8,7 +8,7 @@ export default function Source({ href }: SourceProps) {
 			href={href}
 			target="_blank"
 			rel="noopener noreferrer"
-			className="text-muted-foreground my-auto text-sm hover:underline"
+			className="my-auto text-sm text-(--color-text-tertiary) hover:underline"
 		>
 			source
 		</a>

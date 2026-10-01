@@ -1,29 +1,21 @@
 @import "tailwindcss";
 
 @theme inline {
-	--font-sans: var(--font-geist-sans);
+	--font-serif: var(--font-newsreader), "Iowan Old Style", Charter, Georgia, serif;
 	--font-mono: var(--font-geist-mono);
 }
 
 :root {
-	/* Carousel dimensions - responsive via media queries */
-	--carousel-card-width: 280px;
-	--carousel-gap: 24px;
-
 	/* Light mode variables - ultra soft palette */
 	--color-background: #f8f8f8;
 	--color-foreground: #2c2c2c;
 	--color-surface: #f0f0f0;
 	--color-border: #e0e0e0;
 	--color-border-hover: #d0d0d0;
-	--color-text-secondary: #787878;
+	--color-text-secondary: #6b6b6b;
 	--color-text-tertiary: #686868;
 	--color-interactive: #686868;
 	--color-interactive-hover: #484848;
-	--color-card-bg: rgba(240, 240, 240, 0.6);
-	--color-card-border: rgba(224, 224, 224, 0.6);
-	--color-card-hover-bg: rgba(224, 224, 224, 0.5);
-	--color-card-hover-border: #d0d0d0;
 	--color-dot: #2c2c2c;
 	--color-toggle-active-bg: #2c2c2c;
 	--color-toggle-inactive-bg: #d0d0d0;
@@ -34,21 +26,17 @@
 	:root {
 		/* Dark mode overrides - ultra soft palette */
 		--color-background: #121212;
-		--color-foreground: #d4d4d4;
-		--color-surface: #1e1e1e;
-		--color-border: #252525;
-		--color-border-hover: #303030;
-		--color-text-secondary: #787878;
-		--color-text-tertiary: #5c5c5c;
-		--color-interactive: #686868;
-		--color-interactive-hover: #989898;
-		--color-card-bg: rgba(30, 30, 30, 0.6);
-		--color-card-border: rgba(37, 37, 37, 0.6);
-		--color-card-hover-bg: rgba(37, 37, 37, 0.5);
-		--color-card-hover-border: #303030;
-		--color-dot: #d4d4d4;
-		--color-toggle-active-bg: #d4d4d4;
-		--color-toggle-inactive-bg: #252525;
+		--color-foreground: #f5f5f5;
+		--color-surface: #212121;
+		--color-border: rgba(255, 255, 255, 0.07);
+		--color-border-hover: rgba(255, 255, 255, 0.11);
+		--color-text-secondary: #a3a3a3;
+		--color-text-tertiary: #808080;
+		--color-interactive: #a3a3a3;
+		--color-interactive-hover: #f5f5f5;
+		--color-dot: #f5f5f5;
+		--color-toggle-active-bg: #f5f5f5;
+		--color-toggle-inactive-bg: #2b2b2b;
 		--color-toggle-knob: #121212;
 	}
 }
@@ -63,7 +51,8 @@ html,
 body {
 	background: var(--color-background);
 	color: var(--color-foreground);
-	font-family: Georgia, Times, "Times New Roman", serif;
+	font-family: var(--font-serif);
+	font-weight: 460;
 	min-height: 100vh;
 }
 
@@ -71,19 +60,5 @@ body {
 	* {
 		animation: none !important;
 		transition: none !important;
-	}
-}
-
-@media (min-width: 768px) {
-	:root {
-		--carousel-card-width: 320px;
-		--carousel-gap: 32px;
-	}
-}
-
-@media (min-width: 1024px) {
-	:root {
-		--carousel-card-width: 400px;
-		--carousel-gap: 40px;
 	}
 }

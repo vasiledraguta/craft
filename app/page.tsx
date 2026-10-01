@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 import { Links } from "@/components/Links";
 
 const projects = [
+	{ name: "Porsche UI", href: "https://porsche-ui.vercel.app/", external: true },
 	{ name: "Scrolling Palette", href: "/scrolling-palette" },
-	{ name: "Onboard Flow", href: "/onboard" },
 	{ name: "Grid Patterns", href: "/grid" },
 ];
 
@@ -29,9 +29,6 @@ export default function Home() {
 					<h1 className="mb-4 text-2xl tracking-tight text-(--color-foreground) sm:text-2xl">
 						@vasiledraguta
 					</h1>
-					<p className="mb-4 text-base leading-relaxed text-(--color-text-secondary)">
-						&quot;Everything you can imagine is real.&quot; — Pablo Picasso
-					</p>
 					<Links align="left" />
 				</header>
 
@@ -45,19 +42,26 @@ export default function Home() {
 							>
 								<Link
 									href={project.href}
-									className="group -mx-4 flex items-center rounded-lg px-4 py-3 transition-colors duration-200 hover:bg-(--color-surface)"
+									target={project.external ? "_blank" : undefined}
+									rel={project.external ? "noopener noreferrer" : undefined}
+									className="group -mx-4 flex w-64 items-center rounded-lg px-4 py-3 transition-colors duration-200 hover:bg-(--color-surface)"
 								>
 									<span className="font-medium text-(--color-foreground) transition-colors duration-200 group-hover:text-(--color-interactive-hover)">
 										{project.name}
 									</span>
+									{project.external && <span className="sr-only"> (opens in new tab)</span>}
 									<svg
-										className="ml-2 h-4 w-4 text-(--color-text-tertiary) transition-transform duration-200 group-hover:translate-x-1"
+										className={`ml-2 h-4 w-4 text-(--color-text-tertiary) transition-transform duration-200 ${project.external ? "group-hover:translate-x-0.5 group-hover:-translate-y-0.5" : "group-hover:translate-x-1"}`}
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
 										strokeWidth={2}
 									>
-										<path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d={project.external ? "M7 17 17 7M7 7h10v10" : "M9 5l7 7-7 7"}
+										/>
 									</svg>
 								</Link>
 							</li>
