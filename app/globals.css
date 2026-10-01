@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme inline {
-	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 	--font-serif: var(--font-newsreader), "Iowan Old Style", Charter, Georgia, serif;
 	--font-mono: var(--font-geist-mono);
 }
