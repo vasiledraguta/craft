@@ -7,6 +7,7 @@ import { Links } from "@/components/Links";
 const projects = [
 	{ name: "Scrolling Palette", href: "/scrolling-palette" },
 	{ name: "Grid Patterns", href: "/grid" },
+	{ name: "Porsche UI", href: "https://porsche-ui.vercel.app/", external: true },
 ];
 
 const fadeIn = "transition-all duration-700 ease-out";
@@ -41,13 +42,16 @@ export default function Home() {
 							>
 								<Link
 									href={project.href}
+									target={project.external ? "_blank" : undefined}
+									rel={project.external ? "noopener noreferrer" : undefined}
 									className="group -mx-4 flex w-64 items-center rounded-lg px-4 py-3 transition-colors duration-200 hover:bg-(--color-surface)"
 								>
 									<span className="font-medium text-(--color-foreground) transition-colors duration-200 group-hover:text-(--color-interactive-hover)">
 										{project.name}
 									</span>
+									{project.external && <span className="sr-only"> (opens in new tab)</span>}
 									<svg
-										className="ml-2 h-4 w-4 text-(--color-text-tertiary) transition-transform duration-200 group-hover:translate-x-1"
+										className={`ml-2 h-4 w-4 text-(--color-text-tertiary) transition-transform duration-200 ${project.external ? "-rotate-45 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" : "group-hover:translate-x-1"}`}
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
