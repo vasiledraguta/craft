@@ -24,7 +24,9 @@ export const Links = ({ className = "", align = "center" }: LinksProps) => {
 			>
 				me
 			</a>
-			<span aria-hidden className="text-(--color-text-tertiary)">·</span>
+			<span aria-hidden className="text-(--color-text-tertiary)">
+				·
+			</span>
 			<a
 				href="https://github.com/vasiledraguta"
 				target="_blank"
@@ -33,7 +35,9 @@ export const Links = ({ className = "", align = "center" }: LinksProps) => {
 			>
 				github
 			</a>
-			<span aria-hidden className="text-(--color-text-tertiary)">·</span>
+			<span aria-hidden className="text-(--color-text-tertiary)">
+				·
+			</span>
 			<a
 				href="https://x.com/vasiledraguta"
 				target="_blank"
