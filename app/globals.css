@@ -6,10 +6,6 @@
 }
 
 :root {
-	/* Carousel dimensions - responsive via media queries */
-	--carousel-card-width: 280px;
-	--carousel-gap: 24px;
-
 	/* Light mode variables - ultra soft palette */
 	--color-background: #f8f8f8;
 	--color-foreground: #2c2c2c;
@@ -71,19 +67,5 @@ body {
 	* {
 		animation: none !important;
 		transition: none !important;
-	}
-}
-
-@media (min-width: 768px) {
-	:root {
-		--carousel-card-width: 320px;
-		--carousel-gap: 32px;
-	}
-}
-
-@media (min-width: 1024px) {
-	:root {
-		--carousel-card-width: 400px;
-		--carousel-gap: 40px;
 	}
 }
