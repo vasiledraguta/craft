@@ -28,9 +28,6 @@ export default function Home() {
 					<h1 className="mb-4 text-2xl tracking-tight text-(--color-foreground) sm:text-2xl">
 						@vasiledraguta
 					</h1>
-					<p className="mb-4 text-base leading-relaxed text-(--color-text-secondary)">
-						&quot;Everything you can imagine is real.&quot; — Pablo Picasso
-					</p>
 					<Links align="left" />
 				</header>
 
