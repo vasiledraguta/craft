@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import { Dancing_Script } from "next/font/google";
 import "./globals.css";
-
-const dancingScript = Dancing_Script({
-	weight: ["400", "500", "600", "700"],
-	subsets: ["latin"],
-	variable: "--font-dancing-script",
-});
 
 export const metadata: Metadata = {
 	title: "Craft",
@@ -20,7 +13,7 @@ export default function RootLayout({
 }>) {
 	return (
 		<html lang="en">
-			<body className={`${dancingScript.variable} antialiased`}>{children}</body>
+			<body className="antialiased">{children}</body>
 		</html>
 	);
 }

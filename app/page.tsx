@@ -6,7 +6,6 @@ import { Links } from "@/components/Links";
 
 const projects = [
 	{ name: "Scrolling Palette", href: "/scrolling-palette" },
-	{ name: "Onboard Flow", href: "/onboard" },
 	{ name: "Grid Patterns", href: "/grid" },
 ];
 
