@@ -52,7 +52,7 @@ html,
 body {
 	background: var(--color-background);
 	color: var(--color-foreground);
-	font-family: var(--font-sans);
+	font-family: var(--font-serif);
 	font-weight: 460;
 	min-height: 100vh;
 }
