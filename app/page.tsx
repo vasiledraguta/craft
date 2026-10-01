@@ -5,9 +5,9 @@ import { useEffect, useState } from "react";
 import { Links } from "@/components/Links";
 
 const projects = [
+	{ name: "Porsche UI", href: "https://porsche-ui.vercel.app/", external: true },
 	{ name: "Scrolling Palette", href: "/scrolling-palette" },
 	{ name: "Grid Patterns", href: "/grid" },
-	{ name: "Porsche UI", href: "https://porsche-ui.vercel.app/", external: true },
 ];
 
 const fadeIn = "transition-all duration-700 ease-out";
@@ -51,13 +51,17 @@ export default function Home() {
 									</span>
 									{project.external && <span className="sr-only"> (opens in new tab)</span>}
 									<svg
-										className={`ml-2 h-4 w-4 text-(--color-text-tertiary) transition-transform duration-200 ${project.external ? "-rotate-45 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" : "group-hover:translate-x-1"}`}
+										className={`ml-2 h-4 w-4 text-(--color-text-tertiary) transition-transform duration-200 ${project.external ? "group-hover:translate-x-0.5 group-hover:-translate-y-0.5" : "group-hover:translate-x-1"}`}
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
 										strokeWidth={2}
 									>
-										<path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+										<path
+											strokeLinecap="round"
+											strokeLinejoin="round"
+											d={project.external ? "M7 17 17 7M7 7h10v10" : "M9 5l7 7-7 7"}
+										/>
 									</svg>
 								</Link>
 							</li>
