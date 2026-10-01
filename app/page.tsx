@@ -43,11 +43,11 @@ export default function Home() {
 									href={project.href}
 									className="group -mx-4 flex items-center rounded-lg px-4 py-3 transition-colors duration-200 hover:bg-(--color-surface)"
 								>
-									<span className="text-sm text-(--color-foreground) transition-colors duration-200 group-hover:text-(--color-interactive-hover)">
+									<span className="font-medium text-(--color-foreground) transition-colors duration-200 group-hover:text-(--color-interactive-hover)">
 										{project.name}
 									</span>
 									<svg
-										className="ml-2 h-3.5 w-3.5 text-(--color-text-tertiary) transition-transform duration-200 group-hover:translate-x-1"
+										className="ml-2 h-4 w-4 text-(--color-text-tertiary) transition-transform duration-200 group-hover:translate-x-1"
 										fill="none"
 										viewBox="0 0 24 24"
 										stroke="currentColor"
