@@ -9,6 +9,8 @@ const CHAR_ASPECT = 0.6;
 const MAX_HEIGHT_RATIO = 0.75;
 const CLIP = 0.01;
 const SHARPEN = 0.7;
+const SHADES = 8;
+const MIN_OPACITY = 0.25;
 
 const RADIUS = 90;
 const PUSH = 3.2;
@@ -48,6 +50,7 @@ type Field = {
 	vx: Float32Array;
 	vy: Float32Array;
 	glyph: Uint8Array;
+	shade: Uint8Array;
 	luminance: Float32Array;
 };
 
@@ -147,7 +150,7 @@ function measureRamp(): Ramp {
 function buildAtlas(chars: string, fontSize: number, slot: number, color: string, dpr: number) {
 	const atlas = document.createElement("canvas");
 	atlas.width = Math.ceil(slot * dpr) * chars.length;
-	atlas.height = Math.ceil(slot * dpr);
+	atlas.height = Math.ceil(slot * dpr) * SHADES;
 	const ctx = atlas.getContext("2d");
 	if (!ctx) return atlas;
 	const pixels = Math.ceil(slot * dpr);
@@ -155,8 +158,11 @@ function buildAtlas(chars: string, fontSize: number, slot: number, color: string
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
 	ctx.fillStyle = color;
-	for (let i = 0; i < chars.length; i++) {
-		ctx.fillText(chars[i], pixels * i + pixels / 2, pixels / 2);
+	for (let shade = 0; shade < SHADES; shade++) {
+		ctx.globalAlpha = MIN_OPACITY + ((1 - MIN_OPACITY) * shade) / (SHADES - 1);
+		for (let i = 0; i < chars.length; i++) {
+			ctx.fillText(chars[i], pixels * i + pixels / 2, pixels * shade + pixels / 2);
+		}
 	}
 	return atlas;
 }
@@ -194,6 +200,7 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 			for (let i = 0; i < field.count; i++) {
 				const density = dark ? field.luminance[i] : 1 - field.luminance[i];
 				field.glyph[i] = ramp.lookup[Math.round(density * 255)];
+				field.shade[i] = Math.round(density * (SHADES - 1));
 			}
 		};
 
@@ -207,7 +214,7 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 			ctx.setTransform(1, 0, 0, 1, 0, 0);
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-			const pixels = atlas.height;
+			const pixels = atlas.height / SHADES;
 			const size = pixels / dpr;
 			const offset = size / 2;
 			for (let i = 0; i < field.count; i++) {
@@ -216,7 +223,7 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 				ctx.drawImage(
 					atlas,
 					glyph * pixels,
-					0,
+					field.shade[i] * pixels,
 					pixels,
 					pixels,
 					field.x[i] - offset,
@@ -336,6 +343,7 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 				vx: new Float32Array(count),
 				vy: new Float32Array(count),
 				glyph: new Uint8Array(count),
+				shade: new Uint8Array(count),
 				luminance: sampleLuminance(image, cols, rows),
 			};
 			for (let row = 0; row < rows; row++) {
