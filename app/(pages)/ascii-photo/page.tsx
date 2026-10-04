@@ -3,7 +3,7 @@ import Source from "@/components/Source";
 
 export default function AsciiPhotoPage() {
 	return (
-		<main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col px-6 pt-24 pb-4">
+		<main className="flex min-h-screen w-full flex-col px-6 pt-24 pb-4">
 			<AsciiPhoto />
 			<div className="mt-auto flex justify-center pt-24">
 				<Source href="https://github.com/vasiledraguta/craft/tree/main/components/ascii-photo" />
