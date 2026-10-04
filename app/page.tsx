@@ -8,6 +8,7 @@ const projects = [
 	{ name: "Porsche UI", href: "https://porsche-ui.vercel.app/", external: true },
 	{ name: "Scrolling Palette", href: "/scrolling-palette" },
 	{ name: "Grid Patterns", href: "/grid" },
+	{ name: "ASCII Photo", href: "/ascii-photo" },
 ];
 
 const fadeIn = "transition-all duration-700 ease-out";
