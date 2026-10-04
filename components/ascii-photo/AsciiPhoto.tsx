@@ -71,7 +71,7 @@ export function AsciiPhoto() {
 				<button
 					type="button"
 					onClick={() => inputRef.current?.click()}
-					className="rounded-lg bg-(--color-surface) px-4 py-2 text-sm text-(--color-foreground) transition-colors duration-200 hover:text-(--color-interactive-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-foreground)"
+					className="cursor-pointer rounded-lg bg-(--color-surface) px-4 py-2 text-sm text-(--color-foreground) transition duration-200 hover:text-(--color-interactive-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-foreground) active:scale-95"
 				>
 					{photo ? "Change photo" : "Add photo"}
 				</button>
