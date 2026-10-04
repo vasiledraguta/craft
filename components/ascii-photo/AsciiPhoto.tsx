@@ -32,9 +32,13 @@ export function AsciiPhoto() {
 	};
 
 	return (
-		<div className="flex flex-col items-center gap-8">
+		<motion.div
+			layout
+			transition={{ duration: 0.3, ease: springEase }}
+			className={`flex w-full flex-col items-center gap-8 ${photo ? "" : "my-auto"}`}
+		>
 			<AnimatePresence mode="wait" initial={false}>
-				{photo ? (
+				{photo && (
 					<motion.div
 						key={photo.id}
 						className="w-full"
@@ -45,21 +49,14 @@ export function AsciiPhoto() {
 					>
 						<AsciiField image={photo.bitmap} label={`ASCII rendering of ${photo.name}`} />
 					</motion.div>
-				) : (
-					<motion.div
-						key="empty"
-						className="flex aspect-[4/3] w-full max-w-md items-center justify-center rounded-2xl border border-dashed border-(--color-border-hover) px-6 text-center text-sm text-(--color-text-secondary)"
-						initial={{ opacity: 0, y: 8 }}
-						animate={{ opacity: 1, y: 0 }}
-						exit={{ opacity: 0, y: -8 }}
-						transition={{ duration: 0.15, ease: springEase }}
-					>
-						Pick a photo to turn it into characters, then move your cursor through it.
-					</motion.div>
 				)}
 			</AnimatePresence>
 
-			<div className="flex flex-col items-center gap-3">
+			<motion.div
+				layout="position"
+				transition={{ duration: 0.3, ease: springEase }}
+				className="flex flex-col items-center gap-3"
+			>
 				<input
 					ref={inputRef}
 					type="file"
@@ -78,7 +75,7 @@ export function AsciiPhoto() {
 				<p aria-live="polite" className="min-h-5 text-sm text-(--color-text-secondary)">
 					{error}
 				</p>
-			</div>
-		</div>
+			</motion.div>
+		</motion.div>
 	);
 }
