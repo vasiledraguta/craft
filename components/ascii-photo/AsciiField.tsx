@@ -3,10 +3,12 @@
 import { useEffect, useRef } from "react";
 import { useReducedMotion } from "motion/react";
 
-const CHARSET = " .:-=+*#%@";
+const RAMP = " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 const FONT_FAMILY = 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace';
 const CHAR_ASPECT = 0.6;
-const MAX_HEIGHT_RATIO = 0.7;
+const MAX_HEIGHT_RATIO = 0.75;
+const CLIP = 0.01;
+const SHARPEN = 0.7;
 
 const RADIUS = 90;
 const PUSH = 3.2;
@@ -15,10 +17,27 @@ const DAMPING = 0.86;
 const SCATTER = 48;
 const REST = 0.01;
 
+const RIPPLE_SPEED = 7;
+const RIPPLE_WIDTH = 36;
+const RIPPLE_FORCE = 2.4;
+const RIPPLE_DECAY = 0.985;
+
 interface AsciiFieldProps {
 	image: ImageBitmap;
 	label: string;
 }
+
+type Ramp = {
+	chars: string;
+	lookup: Uint8Array;
+};
+
+type Ripple = {
+	x: number;
+	y: number;
+	radius: number;
+	strength: number;
+};
 
 type Field = {
 	count: number;
@@ -55,26 +74,89 @@ function sampleLuminance(image: ImageBitmap, cols: number, rows: number): Float3
 		if (value > max) max = value;
 	}
 
-	const range = max - min || 1;
-	for (let i = 0; i < luminance.length; i++) {
-		luminance[i] = (luminance[i] - min) / range;
+	const sharpened = new Float32Array(luminance.length);
+	for (let row = 0; row < rows; row++) {
+		for (let col = 0; col < cols; col++) {
+			let sum = 0;
+			let samples = 0;
+			for (let dy = -1; dy <= 1; dy++) {
+				const y = row + dy;
+				if (y < 0 || y >= rows) continue;
+				for (let dx = -1; dx <= 1; dx++) {
+					const x = col + dx;
+					if (x < 0 || x >= cols) continue;
+					sum += luminance[y * cols + x];
+					samples++;
+				}
+			}
+			const i = row * cols + col;
+			sharpened[i] = luminance[i] + (luminance[i] - sum / samples) * SHARPEN;
+		}
 	}
-	return luminance;
+
+	const sorted = Float32Array.from(sharpened).sort();
+	const low = sorted[Math.floor(sorted.length * CLIP)];
+	const high = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * (1 - CLIP)))];
+	const range = high - low || 1;
+	for (let i = 0; i < sharpened.length; i++) {
+		sharpened[i] = Math.min(1, Math.max(0, (sharpened[i] - low) / range));
+	}
+	return sharpened;
 }
 
-function buildAtlas(fontSize: number, cellWidth: number, color: string, dpr: number) {
+function measureRamp(): Ramp {
+	const size = 48;
+	const width = Math.ceil(size * CHAR_ASPECT);
+	const canvas = document.createElement("canvas");
+	canvas.width = width;
+	canvas.height = size;
+	const ctx = canvas.getContext("2d", { willReadFrequently: true });
+	const lookup = new Uint8Array(256);
+	if (!ctx) return { chars: " ", lookup };
+	ctx.font = `${size}px ${FONT_FAMILY}`;
+	ctx.textAlign = "center";
+	ctx.textBaseline = "middle";
+	ctx.fillStyle = "#000";
+
+	const measured = Array.from(new Set(RAMP)).map((char) => {
+		ctx.clearRect(0, 0, width, size);
+		ctx.fillText(char, width / 2, size / 2);
+		const { data } = ctx.getImageData(0, 0, width, size);
+		let ink = 0;
+		for (let i = 3; i < data.length; i += 4) ink += data[i];
+		return { char, ink };
+	});
+	measured.sort((a, b) => a.ink - b.ink);
+
+	const maxInk = measured[measured.length - 1].ink || 1;
+	const levels = measured.map(({ ink }) => ink / maxInk);
+	let glyph = 0;
+	for (let level = 0; level < 256; level++) {
+		const target = level / 255;
+		while (
+			glyph < levels.length - 1 &&
+			Math.abs(levels[glyph + 1] - target) <= Math.abs(levels[glyph] - target)
+		) {
+			glyph++;
+		}
+		lookup[level] = glyph;
+	}
+	return { chars: measured.map(({ char }) => char).join(""), lookup };
+}
+
+function buildAtlas(chars: string, fontSize: number, slot: number, color: string, dpr: number) {
 	const atlas = document.createElement("canvas");
-	atlas.width = Math.ceil(cellWidth * CHARSET.length * dpr);
-	atlas.height = Math.ceil(fontSize * dpr);
+	atlas.width = Math.ceil(slot * dpr) * chars.length;
+	atlas.height = Math.ceil(slot * dpr);
 	const ctx = atlas.getContext("2d");
 	if (!ctx) return atlas;
-	ctx.scale(dpr, dpr);
-	ctx.font = `${fontSize}px ${FONT_FAMILY}`;
+	const pixels = Math.ceil(slot * dpr);
+	ctx.font = `${fontSize * dpr}px ${FONT_FAMILY}`;
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
 	ctx.fillStyle = color;
-	for (let i = 0; i < CHARSET.length; i++) {
-		ctx.fillText(CHARSET[i], cellWidth * i + cellWidth / 2, fontSize / 2);
+	for (let i = 0; i < chars.length; i++) {
+		ctx.fillText(chars[i], pixels * i + pixels / 2, pixels / 2);
 	}
 	return atlas;
 }
@@ -92,12 +174,16 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 
 		const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
 		const pointer = { x: 0, y: 0, active: false };
+		const ramp = measureRamp();
+		const ripples: Ripple[] = [];
 
 		let field: Field | null = null;
 		let atlas: HTMLCanvasElement | null = null;
 		let fontSize = 10;
 		let cellWidth = fontSize * CHAR_ASPECT;
+		let slot = fontSize + 2;
 		let layoutWidth = 0;
+		let diagonal = 0;
 		let dpr = 1;
 		let frameId = 0;
 		let first = true;
@@ -105,16 +191,15 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 		const assignGlyphs = () => {
 			if (!field) return;
 			const dark = darkQuery.matches;
-			const last = CHARSET.length - 1;
 			for (let i = 0; i < field.count; i++) {
 				const density = dark ? field.luminance[i] : 1 - field.luminance[i];
-				field.glyph[i] = Math.round(density * last);
+				field.glyph[i] = ramp.lookup[Math.round(density * 255)];
 			}
 		};
 
 		const paint = () => {
 			const color = getComputedStyle(wrapper).getPropertyValue("--color-foreground").trim();
-			atlas = buildAtlas(fontSize, cellWidth, color || "#2c2c2c", dpr);
+			atlas = buildAtlas(ramp.chars, fontSize, slot, color || "#2c2c2c", dpr);
 		};
 
 		const draw = () => {
@@ -122,21 +207,22 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 			ctx.setTransform(1, 0, 0, 1, 0, 0);
 			ctx.clearRect(0, 0, canvas.width, canvas.height);
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-			const sourceWidth = cellWidth * dpr;
-			const sourceHeight = fontSize * dpr;
+			const pixels = atlas.height;
+			const size = pixels / dpr;
+			const offset = size / 2;
 			for (let i = 0; i < field.count; i++) {
 				const glyph = field.glyph[i];
 				if (glyph === 0) continue;
 				ctx.drawImage(
 					atlas,
-					glyph * sourceWidth,
+					glyph * pixels,
 					0,
-					sourceWidth,
-					sourceHeight,
-					field.x[i] - cellWidth / 2,
-					field.y[i] - fontSize / 2,
-					cellWidth,
-					fontSize
+					pixels,
+					pixels,
+					field.x[i] - offset,
+					field.y[i] - offset,
+					size,
+					size
 				);
 			}
 		};
@@ -145,6 +231,16 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 			if (!field) return false;
 			const radiusSq = RADIUS * RADIUS;
 			let moving = false;
+
+			for (let r = ripples.length - 1; r >= 0; r--) {
+				const ripple = ripples[r];
+				ripple.radius += RIPPLE_SPEED;
+				ripple.strength *= RIPPLE_DECAY;
+				if (ripple.radius - RIPPLE_WIDTH > diagonal || ripple.strength < 0.02) {
+					ripples.splice(r, 1);
+				}
+			}
+
 			for (let i = 0; i < field.count; i++) {
 				let vx = field.vx[i];
 				let vy = field.vy[i];
@@ -159,6 +255,18 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 						const dist = Math.sqrt(distSq) || 1;
 						const falloff = 1 - dist / RADIUS;
 						const force = falloff * falloff * PUSH;
+						vx += (dx / dist) * force;
+						vy += (dy / dist) * force;
+					}
+				}
+
+				for (const ripple of ripples) {
+					const dx = x - ripple.x;
+					const dy = y - ripple.y;
+					const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+					const offset = dist - ripple.radius;
+					if (offset > -RIPPLE_WIDTH && offset < RIPPLE_WIDTH) {
+						const force = Math.cos((offset / RIPPLE_WIDTH) * (Math.PI / 2)) * ripple.strength;
 						vx += (dx / dist) * force;
 						vy += (dy / dist) * force;
 					}
@@ -181,7 +289,7 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 					moving = true;
 				}
 			}
-			return moving;
+			return moving || ripples.length > 0;
 		};
 
 		const tick = () => {
@@ -199,8 +307,9 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 			const available = wrapper.clientWidth;
 			if (!available || available === layoutWidth) return;
 			layoutWidth = available;
-			fontSize = available < 640 ? 7 : 10;
+			fontSize = available < 640 ? 5 : 7;
 			cellWidth = fontSize * CHAR_ASPECT;
+			slot = fontSize + 2;
 			dpr = Math.min(window.devicePixelRatio || 1, 2);
 
 			const maxHeight = window.innerHeight * MAX_HEIGHT_RATIO;
@@ -209,6 +318,7 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 			const rows = Math.max(1, Math.floor((image.height * scale) / fontSize));
 			const width = cols * cellWidth;
 			const height = rows * fontSize;
+			diagonal = Math.hypot(width, height);
 
 			canvas.width = Math.round(width * dpr);
 			canvas.height = Math.round(height * dpr);
@@ -259,6 +369,11 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 			wake();
 		};
 
+		const onPointerDown = (event: PointerEvent) => {
+			onPointerMove(event);
+			ripples.push({ x: pointer.x, y: pointer.y, radius: 0, strength: RIPPLE_FORCE });
+		};
+
 		const onPointerLeave = () => {
 			pointer.active = false;
 		};
@@ -280,7 +395,7 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 		darkQuery.addEventListener("change", onSchemeChange);
 		if (!prefersReducedMotion) {
 			canvas.addEventListener("pointermove", onPointerMove);
-			canvas.addEventListener("pointerdown", onPointerMove);
+			canvas.addEventListener("pointerdown", onPointerDown);
 			canvas.addEventListener("pointerleave", onPointerLeave);
 			canvas.addEventListener("pointerup", onPointerUp);
 			canvas.addEventListener("pointercancel", onPointerLeave);
@@ -291,7 +406,7 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 			observer.disconnect();
 			darkQuery.removeEventListener("change", onSchemeChange);
 			canvas.removeEventListener("pointermove", onPointerMove);
-			canvas.removeEventListener("pointerdown", onPointerMove);
+			canvas.removeEventListener("pointerdown", onPointerDown);
 			canvas.removeEventListener("pointerleave", onPointerLeave);
 			canvas.removeEventListener("pointerup", onPointerUp);
 			canvas.removeEventListener("pointercancel", onPointerLeave);
