@@ -34,7 +34,7 @@ in vec2 a_position;
 in vec2 a_cell;
 uniform vec2 u_resolution;
 uniform vec2 u_grid;
-uniform float u_size;
+uniform vec2 u_size;
 out vec2 v_uv;
 void main() {
 	vec2 point = a_position + (a_corner - 0.5) * u_size;
@@ -69,13 +69,23 @@ type Ripple = {
 	strength: number;
 };
 
+type Grid = {
+	cols: number;
+	rows: number;
+	cellWidth: number;
+	luminance: Float32Array;
+};
+
 type Field = {
 	count: number;
 	home: Float32Array;
 	position: Float32Array;
 	velocity: Float32Array;
 	cell: Float32Array;
-	luminance: Float32Array;
+	slot: Int32Array;
+	awake: Uint8Array;
+	queue: Int32Array;
+	active: number;
 };
 
 function sampleLuminance(image: ImageBitmap, cols: number, rows: number): Float32Array {
@@ -166,10 +176,17 @@ function measureRamp(): Ramp {
 	return { chars: measured.map(({ char }) => char).join(""), lookup };
 }
 
-function buildAtlas(chars: string, fontSize: number, pixels: number, color: string, dpr: number) {
+function buildAtlas(
+	chars: string,
+	fontSize: number,
+	slotWidth: number,
+	slotHeight: number,
+	color: string,
+	dpr: number
+) {
 	const atlas = document.createElement("canvas");
-	atlas.width = pixels * chars.length;
-	atlas.height = pixels * SHADES;
+	atlas.width = slotWidth * chars.length;
+	atlas.height = slotHeight * SHADES;
 	const ctx = atlas.getContext("2d");
 	if (!ctx) return atlas;
 	ctx.font = `${fontSize * dpr}px ${FONT_FAMILY}`;
@@ -179,7 +196,7 @@ function buildAtlas(chars: string, fontSize: number, pixels: number, color: stri
 	for (let shade = 0; shade < SHADES; shade++) {
 		ctx.globalAlpha = MIN_OPACITY + ((1 - MIN_OPACITY) * shade) / (SHADES - 1);
 		for (let i = 0; i < chars.length; i++) {
-			ctx.fillText(chars[i], pixels * i + pixels / 2, pixels * shade + pixels / 2);
+			ctx.fillText(chars[i], slotWidth * i + slotWidth / 2, slotHeight * shade + slotHeight / 2);
 		}
 	}
 	return atlas;
@@ -244,18 +261,24 @@ function createRenderer(canvas: HTMLCanvasElement) {
 			gl.viewport(0, 0, canvas.width, canvas.height);
 			gl.uniform2f(resolution, width, height);
 		},
-		setAtlas(atlas: HTMLCanvasElement, cols: number, rows: number, cellSize: number) {
+		setAtlas(atlas: HTMLCanvasElement, cols: number, rows: number, width: number, height: number) {
 			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlas);
 			gl.uniform2f(grid, cols, rows);
-			gl.uniform1f(size, cellSize);
+			gl.uniform2f(size, width, height);
 		},
 		setCells(cells: Float32Array) {
 			gl.bindBuffer(gl.ARRAY_BUFFER, cellBuffer);
 			gl.bufferData(gl.ARRAY_BUFFER, cells, gl.STATIC_DRAW);
 		},
-		draw(positions: Float32Array, count: number) {
+		setPositions(positions: Float32Array) {
 			gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
 			gl.bufferData(gl.ARRAY_BUFFER, positions, gl.DYNAMIC_DRAW);
+		},
+		updatePositions(positions: Float32Array, first: number, last: number) {
+			gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+			gl.bufferSubData(gl.ARRAY_BUFFER, first * 8, positions, first * 2, (last - first + 1) * 2);
+		},
+		draw(count: number) {
 			gl.clear(gl.COLOR_BUFFER_BIT);
 			gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
 		},
@@ -279,6 +302,7 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 		const ramp = measureRamp();
 		const ripples: Ripple[] = [];
 
+		let grid: Grid | null = null;
 		let field: Field | null = null;
 		let fontSize = MAX_FONT;
 		let layoutWidth = 0;
@@ -287,33 +311,107 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 		let frameId = 0;
 		let first = true;
 
-		const assignGlyphs = () => {
-			if (!field) return;
+		const build = (scatter: number) => {
+			if (!grid) return;
+			const { cols, rows, cellWidth, luminance } = grid;
 			const dark = darkQuery.matches;
-			for (let i = 0; i < field.count; i++) {
-				const density = dark ? field.luminance[i] : 1 - field.luminance[i];
-				field.cell[i * 2] = ramp.lookup[Math.round(density * 255)];
-				field.cell[i * 2 + 1] = Math.round(density * (SHADES - 1));
+			const glyphs = new Uint8Array(cols * rows);
+			const shades = new Uint8Array(cols * rows);
+			const slot = new Int32Array(cols * rows).fill(-1);
+			let count = 0;
+			for (let i = 0; i < glyphs.length; i++) {
+				const density = dark ? luminance[i] : 1 - luminance[i];
+				glyphs[i] = ramp.lookup[Math.round(density * 255)];
+				shades[i] = Math.round(density * (SHADES - 1));
+				if (glyphs[i] !== 0) slot[i] = count++;
+			}
+
+			field = {
+				count,
+				home: new Float32Array(count * 2),
+				position: new Float32Array(count * 2),
+				velocity: new Float32Array(count * 2),
+				cell: new Float32Array(count * 2),
+				slot,
+				awake: new Uint8Array(count),
+				queue: new Int32Array(count),
+				active: 0,
+			};
+			for (let index = 0; index < slot.length; index++) {
+				const particle = slot[index];
+				if (particle < 0) continue;
+				const i = particle * 2;
+				const homeX = (index % cols) * cellWidth + cellWidth / 2;
+				const homeY = Math.floor(index / cols) * fontSize + fontSize / 2;
+				field.home[i] = homeX;
+				field.home[i + 1] = homeY;
+				field.position[i] = homeX + (Math.random() - 0.5) * scatter;
+				field.position[i + 1] = homeY + (Math.random() - 0.5) * scatter;
+				field.cell[i] = glyphs[index];
+				field.cell[i + 1] = shades[index];
+				if (scatter > 0) {
+					field.awake[particle] = 1;
+					field.queue[field.active++] = particle;
+				}
 			}
 			renderer.setCells(field.cell);
+			renderer.setPositions(field.position);
 		};
 
 		const paint = () => {
+			if (!grid) return;
 			const color = getComputedStyle(wrapper).getPropertyValue("--color-foreground").trim();
-			const pixels = Math.ceil((fontSize + 2) * dpr);
-			const atlas = buildAtlas(ramp.chars, fontSize, pixels, color || "#2c2c2c", dpr);
-			renderer.setAtlas(atlas, ramp.chars.length, SHADES, pixels / dpr);
+			const slotWidth = Math.ceil((grid.cellWidth + 2) * dpr);
+			const slotHeight = Math.ceil((fontSize + 2) * dpr);
+			const atlas = buildAtlas(
+				ramp.chars,
+				fontSize,
+				slotWidth,
+				slotHeight,
+				color || "#2c2c2c",
+				dpr
+			);
+			renderer.setAtlas(atlas, ramp.chars.length, SHADES, slotWidth / dpr, slotHeight / dpr);
 		};
 
 		const draw = () => {
-			if (field) renderer.draw(field.position, field.count);
+			if (field) renderer.draw(field.count);
+		};
+
+		const wakeSpan = (row: number, fromX: number, toX: number) => {
+			if (!grid || !field) return;
+			const { cols, cellWidth } = grid;
+			const start = Math.max(0, Math.ceil(fromX / cellWidth - 0.5));
+			const end = Math.min(cols - 1, Math.floor(toX / cellWidth - 0.5));
+			for (let col = start; col <= end; col++) {
+				const particle = field.slot[row * cols + col];
+				if (particle < 0 || field.awake[particle]) continue;
+				field.awake[particle] = 1;
+				field.queue[field.active++] = particle;
+			}
+		};
+
+		const wakeRing = (x: number, y: number, inner: number, outer: number) => {
+			if (!grid || outer <= 0) return;
+			const firstRow = Math.max(0, Math.ceil((y - outer) / fontSize - 0.5));
+			const lastRow = Math.min(grid.rows - 1, Math.floor((y + outer) / fontSize - 0.5));
+			for (let row = firstRow; row <= lastRow; row++) {
+				const dy = row * fontSize + fontSize / 2 - y;
+				const reach = Math.sqrt(Math.max(0, outer * outer - dy * dy));
+				if (inner > 0 && Math.abs(dy) < inner) {
+					const hole = Math.sqrt(inner * inner - dy * dy);
+					wakeSpan(row, x - reach, x - hole);
+					wakeSpan(row, x + hole, x + reach);
+				} else {
+					wakeSpan(row, x - reach, x + reach);
+				}
+			}
 		};
 
 		const step = () => {
 			if (!field) return false;
-			const { home, position, velocity } = field;
+			const { home, position, velocity, awake, queue } = field;
 			const radiusSq = RADIUS * RADIUS;
-			let moving = false;
 
 			for (let r = ripples.length - 1; r >= 0; r--) {
 				const ripple = ripples[r];
@@ -324,7 +422,17 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 				}
 			}
 
-			for (let i = 0; i < field.count * 2; i += 2) {
+			if (pointer.active) wakeRing(pointer.x, pointer.y, 0, RADIUS);
+			for (const ripple of ripples) {
+				wakeRing(ripple.x, ripple.y, ripple.radius - RIPPLE_WIDTH, ripple.radius + RIPPLE_WIDTH);
+			}
+
+			let low = field.count;
+			let high = -1;
+			let k = 0;
+			while (k < field.active) {
+				const particle = queue[k];
+				const i = particle * 2;
 				let vx = velocity[i];
 				let vy = velocity[i + 1];
 				const x = position[i];
@@ -357,22 +465,33 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 
 				vx = (vx + (home[i] - x) * SPRING) * DAMPING;
 				vy = (vy + (home[i + 1] - y) * SPRING) * DAMPING;
+				if (particle < low) low = particle;
+				if (particle > high) high = particle;
+
+				if (
+					Math.abs(vx) <= REST &&
+					Math.abs(vy) <= REST &&
+					Math.abs(home[i] - x - vx) <= REST &&
+					Math.abs(home[i + 1] - y - vy) <= REST
+				) {
+					position[i] = home[i];
+					position[i + 1] = home[i + 1];
+					velocity[i] = 0;
+					velocity[i + 1] = 0;
+					awake[particle] = 0;
+					queue[k] = queue[--field.active];
+					continue;
+				}
+
 				velocity[i] = vx;
 				velocity[i + 1] = vy;
 				position[i] = x + vx;
 				position[i + 1] = y + vy;
-
-				if (
-					!moving &&
-					(Math.abs(vx) > REST ||
-						Math.abs(vy) > REST ||
-						Math.abs(home[i] - position[i]) > REST ||
-						Math.abs(home[i + 1] - position[i + 1]) > REST)
-				) {
-					moving = true;
-				}
+				k++;
 			}
-			return moving || ripples.length > 0;
+
+			if (high >= low) renderer.updatePositions(position, low, high);
+			return field.active > 0 || ripples.length > 0;
 		};
 
 		const tick = () => {
@@ -411,30 +530,10 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 			canvas.style.height = `${height}px`;
 			renderer.resize(width, height, dpr);
 
-			const count = cols * rows;
-			const scatter = first && !prefersReducedMotion ? SCATTER : 0;
-			field = {
-				count,
-				home: new Float32Array(count * 2),
-				position: new Float32Array(count * 2),
-				velocity: new Float32Array(count * 2),
-				cell: new Float32Array(count * 2),
-				luminance: sampleLuminance(image, cols, rows),
-			};
-			for (let row = 0; row < rows; row++) {
-				for (let col = 0; col < cols; col++) {
-					const i = (row * cols + col) * 2;
-					const homeX = col * cellWidth + cellWidth / 2;
-					const homeY = row * fontSize + fontSize / 2;
-					field.home[i] = homeX;
-					field.home[i + 1] = homeY;
-					field.position[i] = homeX + (Math.random() - 0.5) * scatter;
-					field.position[i + 1] = homeY + (Math.random() - 0.5) * scatter;
-				}
-			}
+			grid = { cols, rows, cellWidth, luminance: sampleLuminance(image, cols, rows) };
+			build(first && !prefersReducedMotion ? SCATTER : 0);
 			first = false;
 
-			assignGlyphs();
 			paint();
 			draw();
 			wake();
@@ -466,7 +565,7 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 		};
 
 		const onSchemeChange = () => {
-			assignGlyphs();
+			build(0);
 			paint();
 			draw();
 		};
