@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Links } from "@/components/Links";
 
 const projects = [
+	{ name: "ASCII Photo", href: "/ascii-photo" },
 	{ name: "Porsche UI", href: "https://porsche-ui.vercel.app/", external: true },
 	{ name: "Scrolling Palette", href: "/scrolling-palette" },
 	{ name: "Grid Patterns", href: "/grid" },
