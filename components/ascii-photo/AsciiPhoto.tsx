@@ -17,7 +17,7 @@ type Photo = {
 };
 
 function CharacterWave({ active }: { active: boolean }) {
-	const ref = useRef<HTMLPreElement>(null);
+	const ref = useRef<HTMLSpanElement>(null);
 	const activeRef = useRef(active);
 	const prefersReducedMotion = useReducedMotion() ?? false;
 
@@ -62,10 +62,10 @@ function CharacterWave({ active }: { active: boolean }) {
 	}, [prefersReducedMotion]);
 
 	return (
-		<pre
+		<span
 			ref={ref}
 			aria-hidden
-			className="font-[ui-monospace,SFMono-Regular,Menlo,monospace] text-xs leading-none text-(--color-text-tertiary)"
+			className="block font-[ui-monospace,SFMono-Regular,Menlo,monospace] text-xs leading-none whitespace-pre text-(--color-text-tertiary)"
 		/>
 	);
 }
@@ -75,6 +75,7 @@ export function AsciiPhoto() {
 	const [photo, setPhoto] = useState<Photo | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [dragging, setDragging] = useState(false);
+	const [hovering, setHovering] = useState(false);
 
 	const loadFile = useCallback(async (file: File) => {
 		try {
@@ -165,19 +166,38 @@ export function AsciiPhoto() {
 				) : (
 					<motion.div
 						key="empty"
-						className="flex flex-col items-center gap-6 text-center"
+						className="flex w-full flex-col items-center gap-8 text-center"
 						initial={{ opacity: 0, y: 8 }}
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -8 }}
 						transition={{ duration: 0.15, ease: springEase }}
 					>
-						<CharacterWave active={dragging} />
 						<div className="flex flex-col gap-2">
 							<h1 className="text-2xl tracking-tight text-(--color-foreground)">ASCII Photo</h1>
 							<p className="text-base text-(--color-text-secondary)">
 								Turn a photo into characters you can push around.
 							</p>
 						</div>
+						<button
+							type="button"
+							onClick={() => inputRef.current?.click()}
+							onPointerEnter={() => setHovering(true)}
+							onPointerLeave={() => setHovering(false)}
+							className={`flex w-full max-w-md cursor-pointer flex-col items-center gap-6 rounded-2xl border border-dashed px-6 py-10 transition duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-foreground) active:scale-[0.98] ${dragging ? "border-(--color-foreground) bg-(--color-surface)" : "border-(--color-border-hover) hover:border-(--color-interactive) hover:bg-(--color-surface)"}`}
+						>
+							<CharacterWave active={dragging || hovering} />
+							<span className="flex flex-col gap-1">
+								<span className="text-sm text-(--color-foreground)">
+									{dragging ? "Drop it here" : "Add photo"}
+								</span>
+								<span className="text-sm text-(--color-text-tertiary)">
+									<span className="hidden pointer-fine:inline">
+										Drag an image here, paste one, or click to choose
+									</span>
+									<span className="pointer-fine:hidden">Tap to choose a photo</span>
+								</span>
+							</span>
+						</button>
 					</motion.div>
 				)}
 			</AnimatePresence>
@@ -195,16 +215,15 @@ export function AsciiPhoto() {
 					tabIndex={-1}
 					onChange={onChange}
 				/>
-				<button
-					type="button"
-					onClick={() => inputRef.current?.click()}
-					className="cursor-pointer rounded-lg bg-(--color-surface) px-4 py-2 text-sm text-(--color-foreground) transition duration-200 hover:text-(--color-interactive-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-foreground) active:scale-95"
-				>
-					{photo ? "Change photo" : "Add photo"}
-				</button>
-				<p className="hidden text-sm text-(--color-text-tertiary) pointer-fine:block">
-					{dragging ? "Drop it anywhere" : "or drop or paste an image"}
-				</p>
+				{photo && (
+					<button
+						type="button"
+						onClick={() => inputRef.current?.click()}
+						className="cursor-pointer rounded-lg bg-(--color-surface) px-4 py-2 text-sm text-(--color-foreground) transition duration-200 hover:text-(--color-interactive-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-foreground) active:scale-95"
+					>
+						Change photo
+					</button>
+				)}
 				<p aria-live="polite" className="min-h-5 text-sm text-(--color-text-secondary)">
 					{error}
 				</p>
