@@ -6,9 +6,13 @@ import { useReducedMotion } from "motion/react";
 const RAMP = " .'`^\",:;Il!i><~+_-?][}{1)(|\\/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$";
 const FONT_FAMILY = 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace';
 const CHAR_ASPECT = 0.6;
-const MAX_HEIGHT_RATIO = 0.75;
+const MAX_HEIGHT_RATIO = 0.8;
+const MIN_FONT = 4;
+const MAX_FONT = 10;
+const SOURCE_PIXELS_PER_CELL = 2;
+const MAX_CELLS = 160000;
 const CLIP = 0.01;
-const SHARPEN = 0.7;
+const SHARPEN = 0.5;
 
 const RADIUS = 90;
 const PUSH = 3.2;
@@ -21,6 +25,30 @@ const RIPPLE_SPEED = 7;
 const RIPPLE_WIDTH = 36;
 const RIPPLE_FORCE = 2.4;
 const RIPPLE_DECAY = 0.985;
+
+const VERTEX_SHADER = `#version 300 es
+in vec2 a_corner;
+in vec2 a_position;
+in vec2 a_cell;
+uniform vec2 u_resolution;
+uniform vec2 u_grid;
+uniform float u_size;
+out vec2 v_uv;
+void main() {
+	vec2 point = a_position + (a_corner - 0.5) * u_size;
+	vec2 clip = point / u_resolution * 2.0 - 1.0;
+	gl_Position = vec4(clip.x, -clip.y, 0.0, 1.0);
+	v_uv = (a_cell + a_corner) / u_grid;
+}`;
+
+const FRAGMENT_SHADER = `#version 300 es
+precision mediump float;
+in vec2 v_uv;
+uniform sampler2D u_atlas;
+out vec4 color;
+void main() {
+	color = texture(u_atlas, v_uv);
+}`;
 
 interface AsciiFieldProps {
 	image: ImageBitmap;
@@ -41,13 +69,10 @@ type Ripple = {
 
 type Field = {
 	count: number;
-	homeX: Float32Array;
-	homeY: Float32Array;
-	x: Float32Array;
-	y: Float32Array;
-	vx: Float32Array;
-	vy: Float32Array;
-	glyph: Uint8Array;
+	home: Float32Array;
+	position: Float32Array;
+	velocity: Float32Array;
+	cell: Float32Array;
 	luminance: Float32Array;
 };
 
@@ -63,15 +88,10 @@ function sampleLuminance(image: ImageBitmap, cols: number, rows: number): Float3
 	ctx.drawImage(image, 0, 0, cols, rows);
 	const { data } = ctx.getImageData(0, 0, cols, rows);
 
-	let min = 1;
-	let max = 0;
 	for (let i = 0; i < luminance.length; i++) {
 		const alpha = data[i * 4 + 3] / 255;
-		const value =
+		luminance[i] =
 			((0.2126 * data[i * 4] + 0.7152 * data[i * 4 + 1] + 0.0722 * data[i * 4 + 2]) / 255) * alpha;
-		luminance[i] = value;
-		if (value < min) min = value;
-		if (value > max) max = value;
 	}
 
 	const sharpened = new Float32Array(luminance.length);
@@ -144,13 +164,12 @@ function measureRamp(): Ramp {
 	return { chars: measured.map(({ char }) => char).join(""), lookup };
 }
 
-function buildAtlas(chars: string, fontSize: number, slot: number, color: string, dpr: number) {
+function buildAtlas(chars: string, fontSize: number, pixels: number, color: string, dpr: number) {
 	const atlas = document.createElement("canvas");
-	atlas.width = Math.ceil(slot * dpr) * chars.length;
-	atlas.height = Math.ceil(slot * dpr);
+	atlas.width = pixels * chars.length;
+	atlas.height = pixels;
 	const ctx = atlas.getContext("2d");
 	if (!ctx) return atlas;
-	const pixels = Math.ceil(slot * dpr);
 	ctx.font = `${fontSize * dpr}px ${FONT_FAMILY}`;
 	ctx.textAlign = "center";
 	ctx.textBaseline = "middle";
@@ -161,6 +180,83 @@ function buildAtlas(chars: string, fontSize: number, slot: number, color: string
 	return atlas;
 }
 
+function compile(gl: WebGL2RenderingContext, type: number, source: string) {
+	const shader = gl.createShader(type);
+	if (!shader) return null;
+	gl.shaderSource(shader, source);
+	gl.compileShader(shader);
+	return gl.getShaderParameter(shader, gl.COMPILE_STATUS) ? shader : null;
+}
+
+function createRenderer(canvas: HTMLCanvasElement) {
+	const gl = canvas.getContext("webgl2", { antialias: false, premultipliedAlpha: true });
+	if (!gl) return null;
+	const vertex = compile(gl, gl.VERTEX_SHADER, VERTEX_SHADER);
+	const fragment = compile(gl, gl.FRAGMENT_SHADER, FRAGMENT_SHADER);
+	if (!vertex || !fragment) return null;
+	const program = gl.createProgram();
+	gl.attachShader(program, vertex);
+	gl.attachShader(program, fragment);
+	gl.linkProgram(program);
+	if (!gl.getProgramParameter(program, gl.LINK_STATUS)) return null;
+	gl.useProgram(program);
+	gl.bindVertexArray(gl.createVertexArray());
+
+	const attribute = (name: string, data: Float32Array, divisor: number, usage: number) => {
+		const buffer = gl.createBuffer();
+		const location = gl.getAttribLocation(program, name);
+		gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+		gl.bufferData(gl.ARRAY_BUFFER, data, usage);
+		gl.enableVertexAttribArray(location);
+		gl.vertexAttribPointer(location, 2, gl.FLOAT, false, 0, 0);
+		gl.vertexAttribDivisor(location, divisor);
+		return buffer;
+	};
+
+	attribute("a_corner", new Float32Array([0, 0, 1, 0, 0, 1, 1, 1]), 0, gl.STATIC_DRAW);
+	const positionBuffer = attribute("a_position", new Float32Array(0), 1, gl.DYNAMIC_DRAW);
+	const cellBuffer = attribute("a_cell", new Float32Array(0), 1, gl.STATIC_DRAW);
+
+	gl.bindTexture(gl.TEXTURE_2D, gl.createTexture());
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+	gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+	gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+
+	gl.enable(gl.BLEND);
+	gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+	gl.clearColor(0, 0, 0, 0);
+
+	const resolution = gl.getUniformLocation(program, "u_resolution");
+	const grid = gl.getUniformLocation(program, "u_grid");
+	const size = gl.getUniformLocation(program, "u_size");
+
+	return {
+		resize(width: number, height: number, dpr: number) {
+			canvas.width = Math.round(width * dpr);
+			canvas.height = Math.round(height * dpr);
+			gl.viewport(0, 0, canvas.width, canvas.height);
+			gl.uniform2f(resolution, width, height);
+		},
+		setAtlas(atlas: HTMLCanvasElement, cols: number, rows: number, cellSize: number) {
+			gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlas);
+			gl.uniform2f(grid, cols, rows);
+			gl.uniform1f(size, cellSize);
+		},
+		setCells(cells: Float32Array) {
+			gl.bindBuffer(gl.ARRAY_BUFFER, cellBuffer);
+			gl.bufferData(gl.ARRAY_BUFFER, cells, gl.STATIC_DRAW);
+		},
+		draw(positions: Float32Array, count: number) {
+			gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+			gl.bufferData(gl.ARRAY_BUFFER, positions, gl.DYNAMIC_DRAW);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+			gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, count);
+		},
+	};
+}
+
 export function AsciiField({ image, label }: AsciiFieldProps) {
 	const wrapperRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -169,8 +265,9 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 	useEffect(() => {
 		const wrapper = wrapperRef.current;
 		const canvas = canvasRef.current;
-		const ctx = canvas?.getContext("2d");
-		if (!wrapper || !canvas || !ctx) return;
+		if (!wrapper || !canvas) return;
+		const renderer = createRenderer(canvas);
+		if (!renderer) return;
 
 		const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
 		const pointer = { x: 0, y: 0, active: false };
@@ -178,10 +275,7 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 		const ripples: Ripple[] = [];
 
 		let field: Field | null = null;
-		let atlas: HTMLCanvasElement | null = null;
-		let fontSize = 10;
-		let cellWidth = fontSize * CHAR_ASPECT;
-		let slot = fontSize + 2;
+		let fontSize = MAX_FONT;
 		let layoutWidth = 0;
 		let diagonal = 0;
 		let dpr = 1;
@@ -193,42 +287,26 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 			const dark = darkQuery.matches;
 			for (let i = 0; i < field.count; i++) {
 				const density = dark ? field.luminance[i] : 1 - field.luminance[i];
-				field.glyph[i] = ramp.lookup[Math.round(density * 255)];
+				field.cell[i * 2] = ramp.lookup[Math.round(density * 255)];
+				field.cell[i * 2 + 1] = 0;
 			}
+			renderer.setCells(field.cell);
 		};
 
 		const paint = () => {
 			const color = getComputedStyle(wrapper).getPropertyValue("--color-foreground").trim();
-			atlas = buildAtlas(ramp.chars, fontSize, slot, color || "#2c2c2c", dpr);
+			const pixels = Math.ceil((fontSize + 2) * dpr);
+			const atlas = buildAtlas(ramp.chars, fontSize, pixels, color || "#2c2c2c", dpr);
+			renderer.setAtlas(atlas, ramp.chars.length, 1, pixels / dpr);
 		};
 
 		const draw = () => {
-			if (!field || !atlas) return;
-			ctx.setTransform(1, 0, 0, 1, 0, 0);
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-			const pixels = atlas.height;
-			const size = pixels / dpr;
-			const offset = size / 2;
-			for (let i = 0; i < field.count; i++) {
-				const glyph = field.glyph[i];
-				if (glyph === 0) continue;
-				ctx.drawImage(
-					atlas,
-					glyph * pixels,
-					0,
-					pixels,
-					pixels,
-					field.x[i] - offset,
-					field.y[i] - offset,
-					size,
-					size
-				);
-			}
+			if (field) renderer.draw(field.position, field.count);
 		};
 
 		const step = () => {
 			if (!field) return false;
+			const { home, position, velocity } = field;
 			const radiusSq = RADIUS * RADIUS;
 			let moving = false;
 
@@ -241,11 +319,11 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 				}
 			}
 
-			for (let i = 0; i < field.count; i++) {
-				let vx = field.vx[i];
-				let vy = field.vy[i];
-				const x = field.x[i];
-				const y = field.y[i];
+			for (let i = 0; i < field.count * 2; i += 2) {
+				let vx = velocity[i];
+				let vy = velocity[i + 1];
+				const x = position[i];
+				const y = position[i + 1];
 
 				if (pointer.active) {
 					const dx = x - pointer.x;
@@ -272,19 +350,19 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 					}
 				}
 
-				vx = (vx + (field.homeX[i] - x) * SPRING) * DAMPING;
-				vy = (vy + (field.homeY[i] - y) * SPRING) * DAMPING;
-				field.vx[i] = vx;
-				field.vy[i] = vy;
-				field.x[i] = x + vx;
-				field.y[i] = y + vy;
+				vx = (vx + (home[i] - x) * SPRING) * DAMPING;
+				vy = (vy + (home[i + 1] - y) * SPRING) * DAMPING;
+				velocity[i] = vx;
+				velocity[i + 1] = vy;
+				position[i] = x + vx;
+				position[i + 1] = y + vy;
 
 				if (
 					!moving &&
 					(Math.abs(vx) > REST ||
 						Math.abs(vy) > REST ||
-						Math.abs(field.homeX[i] - field.x[i]) > REST ||
-						Math.abs(field.homeY[i] - field.y[i]) > REST)
+						Math.abs(home[i] - position[i]) > REST ||
+						Math.abs(home[i + 1] - position[i + 1]) > REST)
 				) {
 					moving = true;
 				}
@@ -307,46 +385,46 @@ export function AsciiField({ image, label }: AsciiFieldProps) {
 			const available = wrapper.clientWidth;
 			if (!available || available === layoutWidth) return;
 			layoutWidth = available;
-			fontSize = available < 640 ? 5 : 7;
-			cellWidth = fontSize * CHAR_ASPECT;
-			slot = fontSize + 2;
 			dpr = Math.min(window.devicePixelRatio || 1, 2);
 
 			const maxHeight = window.innerHeight * MAX_HEIGHT_RATIO;
 			const scale = Math.min(available / image.width, maxHeight / image.height);
-			const cols = Math.max(1, Math.floor((image.width * scale) / cellWidth));
-			const rows = Math.max(1, Math.floor((image.height * scale) / fontSize));
+			const displayWidth = image.width * scale;
+			const displayHeight = image.height * scale;
+			const detailFont = displayWidth / ((image.width / SOURCE_PIXELS_PER_CELL) * CHAR_ASPECT);
+			const budgetFont = Math.sqrt((displayWidth * displayHeight) / (MAX_CELLS * CHAR_ASPECT));
+			fontSize = Math.min(MAX_FONT, Math.max(MIN_FONT, budgetFont, detailFont));
+			const cellWidth = fontSize * CHAR_ASPECT;
+
+			const cols = Math.max(1, Math.floor(displayWidth / cellWidth));
+			const rows = Math.max(1, Math.floor(displayHeight / fontSize));
 			const width = cols * cellWidth;
 			const height = rows * fontSize;
 			diagonal = Math.hypot(width, height);
 
-			canvas.width = Math.round(width * dpr);
-			canvas.height = Math.round(height * dpr);
 			canvas.style.width = `${width}px`;
 			canvas.style.height = `${height}px`;
+			renderer.resize(width, height, dpr);
 
 			const count = cols * rows;
 			const scatter = first && !prefersReducedMotion ? SCATTER : 0;
 			field = {
 				count,
-				homeX: new Float32Array(count),
-				homeY: new Float32Array(count),
-				x: new Float32Array(count),
-				y: new Float32Array(count),
-				vx: new Float32Array(count),
-				vy: new Float32Array(count),
-				glyph: new Uint8Array(count),
+				home: new Float32Array(count * 2),
+				position: new Float32Array(count * 2),
+				velocity: new Float32Array(count * 2),
+				cell: new Float32Array(count * 2),
 				luminance: sampleLuminance(image, cols, rows),
 			};
 			for (let row = 0; row < rows; row++) {
 				for (let col = 0; col < cols; col++) {
-					const i = row * cols + col;
+					const i = (row * cols + col) * 2;
 					const homeX = col * cellWidth + cellWidth / 2;
 					const homeY = row * fontSize + fontSize / 2;
-					field.homeX[i] = homeX;
-					field.homeY[i] = homeY;
-					field.x[i] = homeX + (Math.random() - 0.5) * scatter;
-					field.y[i] = homeY + (Math.random() - 0.5) * scatter;
+					field.home[i] = homeX;
+					field.home[i + 1] = homeY;
+					field.position[i] = homeX + (Math.random() - 0.5) * scatter;
+					field.position[i + 1] = homeY + (Math.random() - 0.5) * scatter;
 				}
 			}
 			first = false;
