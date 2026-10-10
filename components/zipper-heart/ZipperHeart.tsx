@@ -2,7 +2,6 @@
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import {
-	AnimatePresence,
 	animate,
 	motion,
 	useMotionValue,
@@ -186,7 +185,6 @@ export function ZipperHeart() {
 	const isBroken = useRef(false);
 	const [sound] = useState(createZipperSound);
 	const [percent, setPercent] = useState(0);
-	const [hasBroken, setHasBroken] = useState(false);
 	const prefersReducedMotion = useReducedMotion() ?? false;
 
 	const progress = useMotionValue(0);
@@ -225,7 +223,6 @@ export function ZipperHeart() {
 
 		if (p >= 1 && !isBroken.current) {
 			isBroken.current = true;
-			setHasBroken(true);
 			sound.snap();
 			animate(
 				broken,
@@ -244,7 +241,6 @@ export function ZipperHeart() {
 		if (p > 0.15) healArmed.current = true;
 		if (p <= 0 && healArmed.current) {
 			healArmed.current = false;
-			setHasBroken(false);
 			sound.heartbeat();
 			if (!prefersReducedMotion) {
 				animate(pulse, [pulse.get(), 1.05, 0.99, 1.03, 1], {
@@ -335,7 +331,6 @@ export function ZipperHeart() {
 			: percent === 100
 				? "Unzipped, heart broken"
 				: `${percent}% unzipped`;
-	const hint = hasBroken ? "Zip it back up" : "Pull the zipper down";
 
 	return (
 		<div className="my-auto flex w-full flex-col items-center gap-8">
@@ -505,18 +500,6 @@ export function ZipperHeart() {
 					</motion.g>
 				</svg>
 			</div>
-			<AnimatePresence mode="wait" initial={false}>
-				<motion.p
-					key={hint}
-					initial={{ opacity: 0, filter: "blur(2px)" }}
-					animate={{ opacity: 1, filter: "blur(0px)" }}
-					exit={{ opacity: 0, filter: "blur(2px)" }}
-					transition={{ duration: 0.2, ease: springEase }}
-					className="text-sm text-(--color-text-tertiary)"
-				>
-					{hint}
-				</motion.p>
-			</AnimatePresence>
 		</div>
 	);
 }
