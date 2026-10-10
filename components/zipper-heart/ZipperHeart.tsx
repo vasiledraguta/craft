@@ -339,9 +339,9 @@ export function ZipperHeart() {
 
 	return (
 		<div className="my-auto flex w-full flex-col items-center gap-8">
-			<div className="flex flex-col gap-2 text-center">
-				<h1 className="text-2xl tracking-tight text-(--color-foreground)">Zipper Heart</h1>
-				<p className="text-base text-(--color-text-secondary)">
+			<div className="flex flex-col gap-1 text-center">
+				<h1 className="text-sm tracking-[0.02em] text-(--color-text-secondary)">Zipper Heart</h1>
+				<p className="text-sm text-(--color-text-tertiary)">
 					A heart you can break and mend with a zipper.
 				</p>
 			</div>

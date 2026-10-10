@@ -35,9 +35,9 @@ export default function GridPage() {
 	return (
 		<main className="flex min-h-screen w-full flex-col px-6 pt-24 pb-4">
 			<div className="mx-auto flex w-full max-w-4xl flex-col gap-8">
-				<div className="flex flex-col gap-2 text-center">
-					<h1 className="text-2xl tracking-tight text-(--color-foreground)">Grid Patterns</h1>
-					<p className="text-base text-(--color-text-secondary)">
+				<div className="flex flex-col gap-1 text-center">
+					<h1 className="text-sm tracking-[0.02em] text-(--color-text-secondary)">Grid Patterns</h1>
+					<p className="text-sm text-(--color-text-tertiary)">
 						Dot grids animated by small math functions.
 					</p>
 				</div>

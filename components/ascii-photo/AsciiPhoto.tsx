@@ -172,9 +172,11 @@ export function AsciiPhoto() {
 						exit={{ opacity: 0, y: -8 }}
 						transition={{ duration: 0.15, ease: springEase }}
 					>
-						<div className="flex flex-col gap-2">
-							<h1 className="text-2xl tracking-tight text-(--color-foreground)">ASCII Photo</h1>
-							<p className="text-base text-(--color-text-secondary)">
+						<div className="flex flex-col gap-1">
+							<h1 className="text-sm tracking-[0.02em] text-(--color-text-secondary)">
+								ASCII Photo
+							</h1>
+							<p className="text-sm text-(--color-text-tertiary)">
 								Turn a photo into characters you can push around.
 							</p>
 						</div>
