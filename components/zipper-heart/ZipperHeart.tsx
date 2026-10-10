@@ -338,14 +338,14 @@ export function ZipperHeart() {
 	const hint = hasBroken ? "Zip it back up" : "Pull the zipper down";
 
 	return (
-		<div className="my-auto flex w-full flex-col items-center gap-6">
-			<h1 className="sr-only">Zipper Heart</h1>
-			<motion.div
-				className="w-full max-w-sm"
-				initial={prefersReducedMotion ? false : { opacity: 0, y: 8, filter: "blur(4px)" }}
-				animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-				transition={{ duration: 0.6, ease: springEase }}
-			>
+		<div className="my-auto flex w-full flex-col items-center gap-8">
+			<div className="flex flex-col gap-2 text-center">
+				<h1 className="text-2xl tracking-tight text-(--color-foreground)">Zipper Heart</h1>
+				<p className="text-base text-(--color-text-secondary)">
+					A heart you can break and mend with a zipper.
+				</p>
+			</div>
+			<div className="w-full max-w-sm">
 				<svg ref={svgRef} viewBox="0 0 360 300" className="w-full overflow-visible">
 					<defs>
 						<linearGradient id={`${id}-heart`} x1="0" y1="0" x2="0" y2="1">
@@ -453,8 +453,8 @@ export function ZipperHeart() {
 								height={66}
 								rx={22}
 								fill="none"
-								strokeWidth={1.5}
-								className="stroke-(--color-text-tertiary) opacity-0 transition-opacity duration-200 group-focus-visible:opacity-100"
+								strokeWidth={2}
+								className="stroke-(--color-foreground) opacity-0 transition-opacity duration-200 group-focus-visible:opacity-100"
 							/>
 							<g filter={`url(#${id}-lift)`}>
 								<path
@@ -504,7 +504,7 @@ export function ZipperHeart() {
 						</motion.g>
 					</motion.g>
 				</svg>
-			</motion.div>
+			</div>
 			<AnimatePresence mode="wait" initial={false}>
 				<motion.p
 					key={hint}

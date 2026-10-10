@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import Source from "@/components/Source";
 import { ZipperHeart } from "@/components/zipper-heart/ZipperHeart";
+
+export const metadata: Metadata = { title: "Zipper Heart" };
 
 export default function ZipperHeartPage() {
 	return (

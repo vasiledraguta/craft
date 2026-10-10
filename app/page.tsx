@@ -46,7 +46,7 @@ export default function Home() {
 									href={project.href}
 									target={project.external ? "_blank" : undefined}
 									rel={project.external ? "noopener noreferrer" : undefined}
-									className="group -mx-4 flex w-64 items-center rounded-lg px-4 py-3 transition-colors duration-200 hover:bg-(--color-surface)"
+									className="group -mx-4 flex w-64 items-center rounded-lg px-4 py-3 transition-colors duration-200 hover:bg-(--color-surface) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-foreground)"
 								>
 									<span className="font-medium text-(--color-foreground) transition-colors duration-200 group-hover:text-(--color-interactive-hover)">
 										{project.name}

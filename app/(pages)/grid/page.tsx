@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { PatternGrid, type GridShowcase } from "@/components/grid/PatternGrid";
 import Source from "@/components/Source";
+
+export const metadata: Metadata = { title: "Grid Patterns" };
 
 const showcases: GridShowcase[] = [
 	{ size: 3, pattern: "pulse", label: "Pulse" },
@@ -30,9 +33,17 @@ const showcases: GridShowcase[] = [
 
 export default function GridPage() {
 	return (
-		<main className="mx-auto w-full max-w-4xl px-6 py-24">
-			<PatternGrid showcases={showcases} />
-			<div className="mt-24 flex justify-center">
+		<main className="flex min-h-screen w-full flex-col px-6 pt-24 pb-4">
+			<div className="mx-auto flex w-full max-w-4xl flex-col gap-8">
+				<div className="flex flex-col gap-2 text-center">
+					<h1 className="text-2xl tracking-tight text-(--color-foreground)">Grid Patterns</h1>
+					<p className="text-base text-(--color-text-secondary)">
+						Dot grids animated by small math functions.
+					</p>
+				</div>
+				<PatternGrid showcases={showcases} />
+			</div>
+			<div className="mt-auto flex justify-center pt-24">
 				<Source href="https://github.com/vasiledraguta/craft/tree/main/components/grid" />
 			</div>
 		</main>

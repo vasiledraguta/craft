@@ -20,7 +20,7 @@ export const Links = ({ className = "", align = "center" }: LinksProps) => {
 				href="https://draguta.dev"
 				target="_blank"
 				rel="noopener noreferrer"
-				className="ease transition-colors duration-200 hover:text-(--color-interactive-hover)"
+				className="rounded-sm transition-colors duration-200 hover:text-(--color-interactive-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-foreground)"
 			>
 				me
 			</a>
@@ -31,7 +31,7 @@ export const Links = ({ className = "", align = "center" }: LinksProps) => {
 				href="https://github.com/vasiledraguta"
 				target="_blank"
 				rel="noopener noreferrer"
-				className="ease transition-colors duration-200 hover:text-(--color-interactive-hover)"
+				className="rounded-sm transition-colors duration-200 hover:text-(--color-interactive-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-foreground)"
 			>
 				github
 			</a>
@@ -42,7 +42,7 @@ export const Links = ({ className = "", align = "center" }: LinksProps) => {
 				href="https://x.com/vasiledraguta"
 				target="_blank"
 				rel="noopener noreferrer"
-				className="ease transition-colors duration-200 hover:text-(--color-interactive-hover)"
+				className="rounded-sm transition-colors duration-200 hover:text-(--color-interactive-hover) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-foreground)"
 			>
 				x
 			</a>
