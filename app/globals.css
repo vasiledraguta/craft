@@ -20,6 +20,14 @@
 	--color-toggle-active-bg: #2c2c2c;
 	--color-toggle-inactive-bg: #d0d0d0;
 	--color-toggle-knob: #f8f8f8;
+	--color-heart: #f3f3f3;
+	--color-heart-shade: #e4e4e4;
+	--color-heart-tape: #e2e2e2;
+	--color-heart-stitch: #cdcdcd;
+	--color-heart-shadow: rgba(0, 0, 0, 0.09);
+	--color-metal: #b8b8b8;
+	--color-metal-shade: #8e8e8e;
+	--color-metal-highlight: #ececec;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -38,6 +46,14 @@
 		--color-toggle-active-bg: #f5f5f5;
 		--color-toggle-inactive-bg: #2b2b2b;
 		--color-toggle-knob: #121212;
+		--color-heart: #282828;
+		--color-heart-shade: #1c1c1c;
+		--color-heart-tape: #1a1a1a;
+		--color-heart-stitch: #3b3b3b;
+		--color-heart-shadow: rgba(0, 0, 0, 0.55);
+		--color-metal: #6f6f6f;
+		--color-metal-shade: #474747;
+		--color-metal-highlight: #a6a6a6;
 	}
 }
 

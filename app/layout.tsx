@@ -9,7 +9,7 @@ const newsreader = Newsreader({
 });
 
 export const metadata: Metadata = {
-	title: "Craft",
+	title: { default: "Craft", template: "%s · Craft" },
 	description: "showcase of my work",
 };
 

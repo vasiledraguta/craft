@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import { AsciiPhoto } from "@/components/ascii-photo/AsciiPhoto";
 import Source from "@/components/Source";
+
+export const metadata: Metadata = { title: "ASCII Photo" };
 
 export default function AsciiPhotoPage() {
 	return (
