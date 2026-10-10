@@ -20,10 +20,11 @@ export function createZipperSound() {
 		frequency: number,
 		q: number,
 		volume: number,
-		duration: number
+		duration: number,
+		delay = 0
 	) => {
 		if (!context || !noise) return;
-		const now = context.currentTime;
+		const start = context.currentTime + delay;
 		const source = context.createBufferSource();
 		source.buffer = noise;
 		const filter = context.createBiquadFilter();
@@ -31,37 +32,52 @@ export function createZipperSound() {
 		filter.frequency.value = frequency;
 		filter.Q.value = q;
 		const gain = context.createGain();
-		gain.gain.setValueAtTime(0.0001, now);
-		gain.gain.exponentialRampToValueAtTime(volume, now + 0.002);
-		gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+		gain.gain.setValueAtTime(0.0001, start);
+		gain.gain.exponentialRampToValueAtTime(volume, start + 0.002);
+		gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
 		source.connect(filter).connect(gain).connect(context.destination);
-		source.start(now, Math.random() * 0.1, duration + 0.01);
+		source.start(start, Math.random() * 0.1, duration + 0.01);
 	};
 
-	const tick = (closing: boolean) => {
+	const tone = (frequency: number, volume: number, duration: number, delay = 0) => {
+		if (!context) return;
+		const start = context.currentTime + delay;
+		const oscillator = context.createOscillator();
+		oscillator.type = "sine";
+		oscillator.frequency.setValueAtTime(frequency, start);
+		oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.45, start + duration * 0.8);
+		const gain = context.createGain();
+		gain.gain.setValueAtTime(0.0001, start);
+		gain.gain.exponentialRampToValueAtTime(volume, start + 0.004);
+		gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+		oscillator.connect(gain).connect(context.destination);
+		oscillator.start(start);
+		oscillator.stop(start + duration + 0.02);
+	};
+
+	const tick = (closing: boolean, speed: number) => {
 		if (!context) return;
 		const now = context.currentTime;
 		if (now - lastTick < 0.014) return;
 		lastTick = now;
-		const frequency = (closing ? 3400 : 2500) * (0.9 + Math.random() * 0.2);
-		burst("bandpass", frequency, 5, 0.7, 0.035);
+		const intensity = Math.min(1, 0.4 + speed * 0.2);
+		const frequency =
+			(closing ? 3600 : 2700) * (0.92 + Math.random() * 0.16) * (1 + intensity * 0.1);
+		burst("bandpass", frequency, 9, 0.9 * intensity, 0.03);
+		burst("bandpass", frequency * 0.5, 2, 0.25 * intensity, 0.018);
 	};
 
-	const thump = (frequency: number) => {
-		if (!context) return;
-		const now = context.currentTime;
-		const oscillator = context.createOscillator();
-		oscillator.type = "sine";
-		oscillator.frequency.setValueAtTime(frequency, now);
-		oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.4, now + 0.16);
-		const gain = context.createGain();
-		gain.gain.setValueAtTime(0.0001, now);
-		gain.gain.exponentialRampToValueAtTime(0.35, now + 0.004);
-		gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
-		oscillator.connect(gain).connect(context.destination);
-		oscillator.start(now);
-		oscillator.stop(now + 0.22);
-		burst("lowpass", 1400, 1, 0.4, 0.05);
+	const snap = () => {
+		tone(140, 0.4, 0.22);
+		burst("highpass", 2200, 0.7, 0.35, 0.09);
+		burst("lowpass", 900, 1, 0.45, 0.06);
+	};
+
+	const heartbeat = () => {
+		tone(95, 0.45, 0.18);
+		burst("lowpass", 500, 1, 0.3, 0.05);
+		tone(78, 0.32, 0.2, 0.17);
+		burst("lowpass", 420, 1, 0.22, 0.05, 0.17);
 	};
 
 	const dispose = () => {
@@ -70,5 +86,5 @@ export function createZipperSound() {
 		noise = null;
 	};
 
-	return { unlock, tick, thump, dispose };
+	return { unlock, tick, snap, heartbeat, dispose };
 }
